@@ -7,19 +7,23 @@
 git clone <repository-url>
 cd study_python
 
-# 2. 본인 브랜치 생성
+# 2. 템플릿 브랜치에서 시작 (중요!)
+git checkout template/week1
+
+# 3. 본인 브랜치 생성
 git checkout -b study/{본인이름}
 # 예: git checkout -b study/alice
 
-# 3. 첫 번째 문제 풀기
+# 4. 첫 번째 문제 풀기
 # week1_variable.py 파일을 열어서 문제를 풀어보세요
 ```
 
 ### 2. 문제 풀이 과정
-1. **파일 열기**: VS Code나 PyCharm 등에서 해당 주차 파일 열기
-2. **주석 제거**: `#` 으로 주석 처리된 부분을 해제하고 답안 작성
-3. **테스트**: `python test_checker.py` 명령어로 자가 진단
-4. **커밋**: 답안이 완성되면 커밋하기
+1. **템플릿에서 시작**: 반드시 `template/week1` 브랜치에서 시작하세요
+2. **파일 열기**: VS Code나 PyCharm 등에서 해당 주차 파일 열기
+3. **답안 작성**: 빈 공간에 코드를 작성하세요
+4. **테스트**: `python test_checker.py` 명령어로 자가 진단
+5. **커밋**: 답안이 완성되면 커밋하기
 
 ### 3. 제출하기
 ```bash
@@ -31,6 +35,14 @@ git commit -m "Week1 변수 문제 완료"
 
 # 3. 원격 저장소에 푸시
 git push origin study/{본인이름}
+```
+
+### 4. 새로운 주차 시작하기
+```bash
+# 새 주차 문제를 받으려면
+git checkout template/week2  # 새로운 템플릿 브랜치
+git checkout study/{본인이름}  # 본인 브랜치로 돌아와서
+git merge template/week2  # 새 문제를 가져오기
 ```
 
 ### 4. 자동 피드백 받기
