@@ -1,0 +1,214 @@
+name: 🐍 Daily Python Study Check
+
+on:
+  schedule:
+    # 매일 오후 6시 (KST 기준, UTC+9이므로 9시 UTC)
+    - cron: '0 9 * * *'
+  push:
+    branches: ['study/**']  # study/ 로 시작하는 모든 브랜치
+  pull_request:
+    branches: ['main']
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  python-teacher:
+    runs-on: ubuntu-latest
+    name: 🤖 AI Python Teacher
+    
+    steps:
+    - name: 📚 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 모든 브랜치 가져오기
+    
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: 📦 Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort pytest
+    
+    - name: 🔍 Check All Study Branches
+      run: |
+        echo "🔍 Checking all study branches..."
+        git branch -r | grep "origin/study/" | while read branch; do
+          branch_name=${branch#origin/}
+          echo "📂 Checking branch: $branch_name"
+          git checkout $branch_name 2>/dev/null || continue
+          
+          # 브랜치별 리포트 생성
+          echo "## 📊 Study Report for $branch_name" >> report_${branch_name//\//_}.md
+          echo "**Date**: $(date)" >> report_${branch_name//\//_}.md
+          echo "" >> report_${branch_name//\//_}.md
+          
+          # Python 파일들 검사
+          for pyfile in week*.py; do
+            if [ -f "$pyfile" ]; then
+              echo "### 📝 $pyfile" >> report_${branch_name//\//_}.md
+              
+              # 1. 문법 검사
+              echo "#### 🔧 문법 검사" >> report_${branch_name//\//_}.md
+              if python -m py_compile "$pyfile" 2>/dev/null; then
+                echo "✅ 문법 오류 없음" >> report_${branch_name//\//_}.md
+              else
+                echo "❌ 문법 오류 발견" >> report_${branch_name//\//_}.md
+                python -m py_compile "$pyfile" 2>&1 | head -5 >> report_${branch_name//\//_}.md
+              fi
+              
+              # 2. 스타일 검사 (flake8)
+              echo "#### 🎨 코드 스타일" >> report_${branch_name//\//_}.md
+              if flake8 "$pyfile" --max-line-length=88 --ignore=E203,W503 2>/dev/null; then
+                echo "✅ PEP8 스타일 준수" >> report_${branch_name//\//_}.md
+              else
+                echo "⚠️ 스타일 개선 필요:" >> report_${branch_name//\//_}.md
+                flake8 "$pyfile" --max-line-length=88 --ignore=E203,W503 2>/dev/null | head -5 >> report_${branch_name//\//_}.md
+              fi
+              
+              # 3. 코드 실행 테스트
+              echo "#### 🏃 실행 테스트" >> report_${branch_name//\//_}.md
+              if timeout 10s python "$pyfile" >/dev/null 2>&1; then
+                echo "✅ 코드 정상 실행" >> report_${branch_name//\//_}.md
+              else
+                echo "❌ 실행 중 오류 발생" >> report_${branch_name//\//_}.md
+              fi
+              
+              # 4. 주석 품질 검사
+              echo "#### 💬 주석 품질 검사" >> report_${branch_name//\//_}.md
+              
+              # 전체 라인 수와 주석 라인 수 계산
+              total_lines=$(wc -l < "$pyfile")
+              comment_lines=$(grep -c '^[[:space:]]*#' "$pyfile" || echo 0)
+              code_lines=$(grep -c '^[[:space:]]*[^#[:space:]]' "$pyfile" || echo 0)
+              
+              # 주석 비율 계산 (소수점 없이)
+              if [ $code_lines -gt 0 ]; then
+                comment_ratio=$((comment_lines * 100 / code_lines))
+              else
+                comment_ratio=0
+              fi
+              
+              echo "- 전체 라인: $total_lines" >> report_${branch_name//\//_}.md
+              echo "- 주석 라인: $comment_lines" >> report_${branch_name//\//_}.md
+              echo "- 코드 라인: $code_lines" >> report_${branch_name//\//_}.md
+              echo "- 주석 비율: ${comment_ratio}%" >> report_${branch_name//\//_}.md
+              
+              # 주석 품질 평가
+              if [ $comment_ratio -ge 15 ]; then
+                echo "✅ 주석이 충분합니다! 코드 이해에 도움이 되겠어요." >> report_${branch_name//\//_}.md
+              elif [ $comment_ratio -ge 8 ]; then
+                echo "👍 적당한 주석이 있네요. 조금 더 추가하면 더 좋을 것 같아요." >> report_${branch_name//\//_}.md
+              elif [ $comment_ratio -ge 3 ]; then
+                echo "💡 주석을 조금 더 추가해보세요." >> report_${branch_name//\//_}.md
+              else
+                echo "📝 간단한 설명 주석을 1-2개 추가해보세요!" >> report_${branch_name//\//_}.md
+              fi
+              
+              # 의미 있는 주석 검사 (단순 반복이 아닌)
+              meaningful_comments=$(grep '^[[:space:]]*#' "$pyfile" | grep -v '^[[:space:]]*#[[:space:]]*$' | grep -v '^[[:space:]]*# 답을 아래에 작성하세요' | wc -l || echo 0)
+              
+              if [ $meaningful_comments -ge 2 ]; then
+                echo "✨ 의미 있는 주석들이 잘 작성되어 있어요!" >> report_${branch_name//\//_}.md
+              elif [ $meaningful_comments -ge 1 ]; then
+                echo "💡 의미 있는 주석이 있네요. 좋습니다!" >> report_${branch_name//\//_}.md
+              else
+                echo "📝 간단한 설명 주석을 1-2개 추가해보세요!" >> report_${branch_name//\//_}.md
+              fi
+              
+              echo "" >> report_${branch_name//\//_}.md
+            fi
+          done
+          
+          # 주차별 진도 체크
+          completed_weeks=0
+          for week in {1..5}; do
+            if [ -f "week${week}_*.py" ]; then
+              # 파일에 실제 답안이 있는지 체크 (주석이 아닌 코드 라인)
+              if grep -v '^#' week${week}_*.py | grep -q '[a-zA-Z]'; then
+                completed_weeks=$((completed_weeks + 1))
+              fi
+            fi
+          done
+          
+          echo "### 📈 학습 진도" >> report_${branch_name//\//_}.md
+          echo "완료한 주차: $completed_weeks/5" >> report_${branch_name//\//_}.md
+          echo "진도율: $(($completed_weeks * 20))%" >> report_${branch_name//\//_}.md
+          
+          # 격려 메시지
+          echo "### 🎯 AI 선생님의 한마디" >> report_${branch_name//\//_}.md
+          if [ $completed_weeks -eq 0 ]; then
+            echo "🌱 시작이 반입니다! 첫 번째 문제부터 차근차근 풀어보세요." >> report_${branch_name//\//_}.md
+          elif [ $completed_weeks -le 2 ]; then
+            echo "👍 좋은 시작이에요! 꾸준히 하는 것이 가장 중요합니다." >> report_${branch_name//\//_}.md
+          elif [ $completed_weeks -le 4 ]; then
+            echo "🔥 잘 하고 있어요! 이 속도로 계속 진행하세요!" >> report_${branch_name//\//_}.md
+          else
+            echo "🏆 훌륭합니다! 모든 과정을 완주하셨네요. 다음 단계를 준비해볼까요?" >> report_${branch_name//\//_}.md
+          fi
+          
+          echo "" >> report_${branch_name//\//_}.md
+        done
+    
+    - name: 📊 Generate Overall Report
+      run: |
+        echo "# 📊 Daily Study Report - $(date +%Y-%m-%d)" > daily_report.md
+        echo "" >> daily_report.md
+        echo "## 🎯 오늘의 학습 현황" >> daily_report.md
+        echo "" >> daily_report.md
+        
+        # 개별 리포트 합치기
+        for report in report_study_*.md; do
+          if [ -f "$report" ]; then
+            cat "$report" >> daily_report.md
+            echo "---" >> daily_report.md
+          fi
+        done
+        
+        echo "## 📢 공지사항" >> daily_report.md
+        echo "- 매일 오후 6시에 자동으로 코드를 체크합니다" >> daily_report.md
+        echo "- 질문이 있으면 Issues에 남겨주세요" >> daily_report.md
+        echo "- 팀원들의 코드를 참고해서 서로 배워보세요!" >> daily_report.md
+    
+    - name: 📝 Create Issue with Report
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const reportContent = fs.readFileSync('daily_report.md', 'utf8');
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `📊 일일 학습 리포트 - ${new Date().toLocaleDateString('ko-KR')}`,
+            body: reportContent,
+            labels: ['daily-report', 'study']
+          });
+    
+    - name: 💌 Comment on Push
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/study/')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // 푸시한 브랜치에 대한 즉시 피드백
+          const branchName = context.ref.replace('refs/heads/', '');
+          const studentName = branchName.split('/')[1] || 'Student';
+          
+          const encouragements = [
+            `🎉 ${studentName}님, 새로운 코드가 업로드되었네요! 열심히 하는 모습이 보기 좋습니다.`,
+            `👏 ${studentName}님의 학습 열정이 느껴집니다! 계속 화이팅하세요!`,
+            `🚀 ${studentName}님, 한 걸음 더 나아가셨네요. 꾸준함이 실력입니다!`,
+            `⭐ ${studentName}님, 오늘도 성실하게 공부하시는군요. 응원합니다!`
+          ];
+          
+          const randomMessage = encouragements[Math.floor(Math.random() * encouragements.length)];
+          
+          // 최근 커밋에 코멘트 달기
+          await github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `${randomMessage}\n\n🤖 자동화된 체크가 완료되면 상세한 피드백을 제공할게요!`
+          });
