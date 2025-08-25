@@ -75,15 +75,26 @@ def index():
         # 제출 코드를 파일로 저장
         with open("week1_variable.py", "w", encoding="utf-8") as f:
             f.write(code)
-        # test_checker.py 실행
-        import subprocess
+        # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
+        # 이전에는 subprocess로 외부 프로세스를 실행했음.
+        # Vercel 같은 서버리스 환경에서는 subprocess 사용이 제한되거나 실패할 수 있으므로,
+        # test_checker 모듈을 직접 import하고 stdout을 캡처하여 실행하도록 변경합니다.
         try:
-            output = subprocess.check_output(
-                [sys.executable, "test_checker.py"],
-                stderr=subprocess.STDOUT,
-                text=True,
-                cwd=os.path.dirname(os.path.abspath(__file__))
-            )
+            import importlib
+            import importlib.util
+            import contextlib
+            from io import StringIO
+
+            buf = StringIO()
+            with contextlib.redirect_stdout(buf):
+                # 이미 임포트되어 있을 수 있으므로 reload로 최신 상태 반영
+                if 'test_checker' in sys.modules:
+                    importlib.reload(sys.modules['test_checker']).main()
+                else:
+                    import test_checker
+                    importlib.reload(test_checker)
+                    test_checker.main()
+            output = buf.getvalue()
             result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
         except Exception as e:
             import traceback
@@ -109,6 +120,9 @@ def index():
                 result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
         else:
             result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
+
+    # 렌더링 결과 반환
+    return render_template_string(HTML, problem=PROBLEM, result=result)
 
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
