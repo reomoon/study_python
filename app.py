@@ -105,8 +105,14 @@ def index():
         import types
         module_name = f'week{week}_variable'
         module = types.ModuleType(module_name)
+        # 학생 코드의 실행 출력을 캡처해서 결과에 보여주기 위해 stdout을 리디렉트합니다.
+        student_output = ''
         try:
-            exec(code, module.__dict__)
+            import contextlib
+            buf_exec = io.StringIO()
+            with contextlib.redirect_stdout(buf_exec):
+                exec(code, module.__dict__)
+            student_output = buf_exec.getvalue()
             # 제출 원본을 모듈에 보관하면 채점기가 메모리 모듈의 출력/주석을 검사할 수 있습니다.
             module.__source__ = code
             sys.modules[module_name] = module
@@ -139,7 +145,15 @@ def index():
                     importlib.reload(test_checker)
                     test_checker.run_week(week)
             output = buf.getvalue()
-            result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
+            # 학생 코드 출력과 채점 출력을 함께 보여줍니다.
+            combined = """
+학생 코드 출력:
+{student}
+
+채점기 출력:
+{checker}
+""".format(student=student_output, checker=output)
+            result = f"<b>자동 채점 결과:</b><br><pre>{combined}</pre><br>✅ 정상 실행!"
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
