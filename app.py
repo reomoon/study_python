@@ -41,6 +41,8 @@ HTML = '''
             <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
         {% endfor %}
     </select><br><br>
+    표준 입력 (각 input() 호출마다 한 줄씩 넣어주세요):<br>
+    <textarea name="stdin" rows="4" style="width:400px" placeholder="예 (각 줄이 하나의 input()에 대응):\nAlice\n25\n"></textarea><br><br>
     답안 코드:<br>
     <textarea id="code" name="code" style="display:none"></textarea>
             <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:350px; width:800px; margin-bottom:10px; overflow-y:auto;"></div><br>
@@ -117,8 +119,16 @@ def index():
         try:
             import contextlib
             buf_exec = io.StringIO()
-            with contextlib.redirect_stdout(buf_exec):
-                exec(code, module.__dict__)
+            stdin_text = request.form.get('stdin', '')
+            # Provide the supplied stdin to input() calls using redirect_stdin
+            try:
+                with contextlib.redirect_stdout(buf_exec), contextlib.redirect_stdin(io.StringIO(stdin_text)):
+                    exec(code, module.__dict__)
+            except EOFError as ee:
+                # Provide a clearer message for missing input
+                student_output = buf_exec.getvalue()
+                result = f"❌ 제출 코드 실행 중 에러: 입력이 필요합니다 (EOF).\n입력값이 필요한 경우 제출 폼의 '표준 입력' 칸에 값을 넣어주세요.\n\n에러: {ee}"
+                return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output)
             student_output = buf_exec.getvalue()
             # 제출 원본을 모듈에 보관하면 채점기가 메모리 모듈의 출력/주석을 검사할 수 있습니다.
             module.__source__ = code
