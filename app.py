@@ -102,11 +102,11 @@ def index():
             with contextlib.redirect_stdout(buf):
                 # 이미 임포트되어 있을 수 있으므로 reload로 최신 상태 반영
                 if 'test_checker' in sys.modules:
-                    importlib.reload(sys.modules['test_checker']).main()
+                    importlib.reload(sys.modules['test_checker']).run_week(week)
                 else:
                     import test_checker
                     importlib.reload(test_checker)
-                    test_checker.main()
+                    test_checker.run_week(week)
             output = buf.getvalue()
             result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
         except Exception as e:

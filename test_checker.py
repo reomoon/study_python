@@ -45,16 +45,16 @@ def check_comments(filename):
             print("✅ 주석이 충분합니다!")
             score += 2
         elif comment_ratio >= 8:
-            print("👍 적당한 주석이 있네요.")
+            print("적당한 주석이 있네요.")
             score += 1
         else:
-            print("💡 주석을 조금 더 추가해보세요.")
+            print("주석을 조금 더 추가해보세요.")
         
         if meaningful_comments >= 2:
-            print("✨ 의미 있는 주석들이 잘 작성되어 있어요!")
+            print("의미 있는 주석들이 잘 작성되어 있어요!")
             score += 1
         elif meaningful_comments >= 1:
-            print("💡 의미 있는 주석이 있네요. 좋습니다!")
+            print("의미 있는 주석이 있네요. 좋습니다!")
             score += 1
         else:
             print("📝 간단한 설명 주석을 1-2개 추가해보세요!")
@@ -67,74 +67,8 @@ def check_comments(filename):
 
 def test_week1():
     """Week 1 테스트"""
-    print("📝 Week 1 테스트 시작...")
-    
-    try:
-        # 우선 메모리 모듈로 주입된 `week1_variable` 확인 (Vercel 등 읽기전용 FS 대응)
-        if 'week1_variable' in sys.modules:
-            week1 = sys.modules['week1_variable']
-            # 메모리 모듈이 원본 코드를 가지고 있으면 그 소스에서 출력 캡처
-            src = getattr(week1, '__source__', None)
-            if src is not None:
-                f = io.StringIO()
-                with contextlib.redirect_stdout(f):
-                    # 실행은 이미 되었을 수 있으니 재실행하여 출력 캡처
-                    exec(src, week1.__dict__)
-                output = f.getvalue()
-            else:
-                output = ''
-        else:
-            # 파일 기반 로딩 (로컬 개발 환경)
-            spec = importlib.util.spec_from_file_location("week1", "week1_variable.py")
-            week1 = importlib.util.module_from_spec(spec)
-            f = io.StringIO()
-            with contextlib.redirect_stdout(f):
-                spec.loader.exec_module(week1)
-            output = f.getvalue()
-        
-        # 기본 체크 항목들
-        checks = []
-        
-        # 변수 x가 정의되어 있는지 확인
-        if hasattr(week1, 'x') and week1.x == 7:
-            checks.append("✅ 문제 1: 변수 x 정의 완료")
-        else:
-            checks.append("❌ 문제 1: 변수 x가 7로 설정되지 않았습니다")
-        
-        # 출력에 필요한 내용이 포함되어 있는지 확인
-        if "x는" in output and "7" in output:
-            checks.append("✅ 문제 1: 출력 형식 올바름")
-        else:
-            checks.append("❌ 문제 1: 출력 형식을 확인해주세요")
-        
-        for check in checks:
-            print(check)
-        
-        # 주석 품질 검사 추가 (메모리 모듈의 소스가 있으면 그 소스를 검사)
-        print("\n💬 주석 품질 검사:")
-        if 'week1_variable' in sys.modules and getattr(sys.modules['week1_variable'], '__source__', None):
-            # 메모리 모듈의 소스에서 줄 리스트를 만들고 통계 산출
-            src = sys.modules['week1_variable'].__source__
-            # 임시로 파일에 쓰지 않고 문자열에서 검사를 수행
-            lines = src.splitlines()
-            # write a temporary helper to reuse check_comments logic: create a temp file-like handling
-            # For simplicity, we'll write lines to a temp file only in local dev; here we'll mimic
-            with open('._tmp_week1_source.txt', 'w', encoding='utf-8') as tf:
-                tf.write('\n'.join(lines))
-            comment_score = check_comments('._tmp_week1_source.txt')
-            try:
-                os.remove('._tmp_week1_source.txt')
-            except Exception:
-                pass
-        else:
-            comment_score = check_comments('week1_variable.py')
-        
-        total_score = len([c for c in checks if c.startswith("✅")]) + comment_score
-        return total_score
-        
-    except Exception as e:
-        print(f"❌ Week 1 테스트 실행 중 오류: {e}")
-        return 0
+    # delegate to run_week for consistency with answers/ loader
+    return run_week(1)
 
 def test_week2():
     """Week 2 테스트"""
@@ -173,6 +107,58 @@ def test_week2():
         return 0
     except Exception as e:
         print(f"❌ Week 2 테스트 실행 중 오류: {e}")
+        return 0
+
+ANSWERS_DIR = os.path.join(os.path.dirname(__file__), 'answers')
+
+def load_answer_modules():
+    mods = {}
+    if not os.path.isdir(ANSWERS_DIR):
+        return mods
+    for fn in os.listdir(ANSWERS_DIR):
+        if fn.endswith('.py') and not fn.startswith('__'):
+            path = os.path.join(ANSWERS_DIR, fn)
+            name = f"answers.{fn[:-3]}"
+            try:
+                spec = importlib.util.spec_from_file_location(name, path)
+                m = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(m)
+                week = getattr(m, 'WEEK', None)
+                if week is not None:
+                    mods[int(week)] = m
+            except Exception as e:
+                print(f"❌ answers 로드 실패: {fn} -> {e}")
+    return mods
+
+# 캐시된 answer 모듈 맵
+_answer_modules = load_answer_modules()
+
+def run_week(week):
+    """주차별 채점 실행기: answers 폴더의 모듈에게 위임합니다."""
+    try:
+        w = int(week)
+    except Exception:
+        print("❌ 잘못된 주차 값입니다.")
+        return 0
+
+    # reload answer modules if cache doesn't have requested week (helps during development)
+    global _answer_modules
+    if w not in _answer_modules:
+        _answer_modules = load_answer_modules()
+
+    mod = _answer_modules.get(w)
+    if not mod:
+        print(f"📋 {w}주차 검사가 없습니다.")
+        return 0
+
+    # week_module는 app.py가 주입한 메모리 모듈 이름 패턴을 따릅니다
+    mem_name = f'week{w}_variable'
+    week_module = sys.modules.get(mem_name)
+    # 각 answer 모듈은 run(week_module) 함수를 제공해야 함
+    try:
+        return mod.run(week_module)
+    except Exception as e:
+        print(f"❌ {w}주차 검사 실행 중 오류: {e}")
         return 0
 
 def main():
