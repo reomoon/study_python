@@ -22,6 +22,18 @@ HTML = '''
 <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:20px;">{{ problem|safe }}</div>
 <form method="post" onsubmit="document.getElementById('code').value = editor.getValue();">
     이름: <input name="username" required><br><br>
+    주차: <select name="week">
+        <option value="1">1주차</option>
+        <option value="2">2주차</option>
+        <option value="3">3주차</option>
+        <option value="4">4주차</option>
+        <option value="5">5주차</option>
+        <option value="6">6주차</option>
+        <option value="7">7주차</option>
+        <option value="8">8주차</option>
+        <option value="9">9주차</option>
+        <option value="10">10주차</option>
+    </select><br><br>
     답안 코드:<br>
     <textarea id="code" name="code" style="display:none"></textarea>
             <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:350px; width:800px; margin-bottom:10px; overflow-y:auto;"></div><br>
@@ -59,39 +71,42 @@ def index():
     if request.method == "POST":
         username = request.form["username"]
         code = request.form["code"]
+        week = request.form["week"]
         # 제출 코드를 파일로 저장
-    with open("week1_variable.py", "w", encoding="utf-8") as f:
-        f.write(code)
-    # test_checker.py 실행
-    import subprocess
-    try:
-        output = subprocess.check_output(
-            [sys.executable, "test_checker.py"],
-            stderr=subprocess.STDOUT,
-            text=True,
-            cwd=os.path.dirname(os.path.abspath(__file__))
-        )
-        result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
-    except Exception as e:
-        output = str(e)
-        result = f"❌ 자동 채점 중 에러 발생: {e}"
+        with open("week1_variable.py", "w", encoding="utf-8") as f:
+            f.write(code)
+        # test_checker.py 실행
+        import subprocess
+        try:
+            output = subprocess.check_output(
+                [sys.executable, "test_checker.py"],
+                stderr=subprocess.STDOUT,
+                text=True,
+                cwd=os.path.dirname(os.path.abspath(__file__))
+            )
+            result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
+        except Exception as e:
+            output = str(e)
+            result = f"❌ 자동 채점 중 에러 발생: {e}"
 
-    # GitHub 이슈 생성
-    if GITHUB_TOKEN:
-        issue_title = f"[1주차] {username} 답안 제출"
-        issue_body = f"**이름:** {username}\n\n**답안 코드:**\n```python\n{code}\n```\n\n**자동 채점 결과:**\n```\n{output}\n```"
-        headers = {
-            "Authorization": f"token {GITHUB_TOKEN}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-        data = {"title": issue_title, "body": issue_body}
-        r = requests.post(f"https://api.github.com/repos/reomoon/study_python/issues", json=data, headers=headers)
-        if r.status_code == 201:
-            result += "<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!"
+        # GitHub 이슈 생성
+        if GITHUB_TOKEN:
+            issue_title = f"[{week}주차] {username} 답안 제출"
+            issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**자동 채점 결과:**\n```
+{output}
+```"""
+            headers = {
+                "Authorization": f"token {GITHUB_TOKEN}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            data = {"title": issue_title, "body": issue_body}
+            r = requests.post(f"https://api.github.com/repos/reomoon/study_python/issues", json=data, headers=headers)
+            if r.status_code == 201:
+                result += "<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!"
+            else:
+                result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
         else:
-            result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
-    else:
-        result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
+            result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
 
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
