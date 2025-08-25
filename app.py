@@ -99,38 +99,24 @@ HTML = '''
             <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:420px; width:100%; max-width:1000px; margin-bottom:10px; overflow-y:auto;"></div><br>
     <button type="submit">제출</button>
 </form>
-<!-- CodeMirror 스타일/애드온 -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/selection/active-line.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/comment/comment.min.js"></script>
+<!-- Monaco Editor (VSCode 기반 에디터) -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
 <script>
-var editor = CodeMirror(document.getElementById('editor'), {
+require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
+require(['vs/editor/editor.main'], function() {
+    window.editor = monaco.editor.create(document.getElementById('editor'), {
         value: '',
-        mode: 'python',
-        theme: 'material',
-        styleActiveLine: true,
-        lineNumbers: true,
-        indentUnit: 4,
-        indentWithTabs: true,
-        matchBrackets: true,
-        autoCloseBrackets: true,
-        tabSize: 4,
-        extraKeys: {
-                Tab: function(cm) { cm.replaceSelection('    ', 'end'); },
-                'Ctrl-/': 'toggleComment'
-        }
+        language: 'python',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        minimap: { enabled: false },
+        fontFamily: 'Consolas, "Courier New", monospace',
+        fontSize: 13
+    });
 });
 
 function copyCode(){
-    const code = editor.getValue();
+    const code = window.editor && window.editor.getValue ? window.editor.getValue() : '';
     navigator.clipboard && navigator.clipboard.writeText(code);
     alert('코드가 클립보드에 복사되었습니다.');
 }
@@ -141,7 +127,7 @@ function loadExample(){
         if(!r.ok) throw new Error('예제 로드 실패');
         return r.text();
     }).then(txt=>{
-        editor.setValue(txt);
+        if(window.editor && window.editor.setValue) window.editor.setValue(txt);
     }).catch(e=>alert(String(e)));
 }
 </script>
@@ -159,8 +145,8 @@ function onWeekChange(v) {
 // 순차적으로 prompt()로 입력값을 받아 채워줍니다.
 function beforeSubmit(){
     // 코드 동기화
-    document.getElementById('code').value = editor.getValue();
-    const code = editor.getValue();
+    const code = (window.editor && window.editor.getValue) ? window.editor.getValue() : editor.getValue();
+    document.getElementById('code').value = code;
     const stdinElem = document.getElementsByName('stdin')[0];
     const stdinVal = (stdinElem && stdinElem.value) ? stdinElem.value.trim() : '';
 
@@ -193,6 +179,10 @@ function beforeSubmit(){
 <h4>채점기 출력</h4>
 <pre>{{ checker_output|e }}</pre>
 {% endif %}
+{% if submitted_code %}
+<h4>제출한 코드</h4>
+<pre>{{ submitted_code|e }}</pre>
+{% endif %}
 {{ result|safe }}
 {% endif %}
 '''
@@ -205,11 +195,13 @@ def index():
     selected_week = request.args.get('week', '1')
     student_output = ''
     checker_output = ''
+    submitted_code = ''
     if request.method == "POST":
         username = request.form["username"]
         code = request.form["code"]
         week = request.form["week"]
         selected_week = str(week)
+        submitted_code = code
         # 동적 문제 로드
         problem_path = f"problem/problem_week{week}.html"
         try:
@@ -236,7 +228,7 @@ def index():
                 # Provide a clearer message for missing input
                 student_output = buf_exec.getvalue()
                 result = f"❌ 제출 코드 실행 중 에러: 입력이 필요합니다 (EOF).\n입력값이 필요한 경우 제출 폼의 '표준 입력' 칸에 값을 넣어주세요.\n\n에러: {ee}"
-                return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output)
+                return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
             student_output = buf_exec.getvalue()
             # 제출 원본을 모듈에 보관하면 채점기가 메모리 모듈의 출력/주석을 검사할 수 있습니다.
             module.__source__ = code
@@ -246,7 +238,7 @@ def index():
             tb = traceback.format_exc()
             # 실행 중 예외가 발생하면 즉시 사용자에게 보여주고 중단
             result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
-            return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output)
+            return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
@@ -298,9 +290,9 @@ def index():
                     issue_url = r.json().get('html_url')
                 except Exception:
                     issue_url = None
-                if issue_url:
+                    if issue_url:
                     # Make the issue link text smaller so it doesn't dominate the result area
-                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <span style=\"font-size:0.9em;\"><a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a></span>"
+                        result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <span style=\"font-size:0.9em;\"><a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a></span>"
                 else:
                     result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: <span style=\"font-size:0.9em;\">https://github.com/{GITHUB_REPO}/issues</span>"
             else:
@@ -317,7 +309,7 @@ def index():
     except Exception as e:
         PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
 
-    return render_template_string(HTML, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output)
+    return render_template_string(HTML, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
@@ -335,3 +327,5 @@ def example():
             return Response(f.read(), mimetype='text/plain; charset=utf-8')
     except Exception as e:
         return Response(f"# 예제 파일을 찾을 수 없습니다: {e}", mimetype='text/plain; charset=utf-8')
+    
+    
