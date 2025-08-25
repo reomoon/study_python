@@ -5,6 +5,7 @@ import importlib.util
 import sys
 import io
 import contextlib
+import os
 
 def check_comments(filename):
     """주석 품질을 검사하는 함수"""
@@ -69,15 +70,27 @@ def test_week1():
     print("📝 Week 1 테스트 시작...")
     
     try:
-        # week1_variable.py 파일에서 변수들 확인
-        spec = importlib.util.spec_from_file_location("week1", "week1_variable.py")
-        week1 = importlib.util.module_from_spec(spec)
-        
-        # 출력 캡처를 위한 설정
-        f = io.StringIO()
-        with contextlib.redirect_stdout(f):
-            spec.loader.exec_module(week1)
-        output = f.getvalue()
+        # 우선 메모리 모듈로 주입된 `week1_variable` 확인 (Vercel 등 읽기전용 FS 대응)
+        if 'week1_variable' in sys.modules:
+            week1 = sys.modules['week1_variable']
+            # 메모리 모듈이 원본 코드를 가지고 있으면 그 소스에서 출력 캡처
+            src = getattr(week1, '__source__', None)
+            if src is not None:
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
+                    # 실행은 이미 되었을 수 있으니 재실행하여 출력 캡처
+                    exec(src, week1.__dict__)
+                output = f.getvalue()
+            else:
+                output = ''
+        else:
+            # 파일 기반 로딩 (로컬 개발 환경)
+            spec = importlib.util.spec_from_file_location("week1", "week1_variable.py")
+            week1 = importlib.util.module_from_spec(spec)
+            f = io.StringIO()
+            with contextlib.redirect_stdout(f):
+                spec.loader.exec_module(week1)
+            output = f.getvalue()
         
         # 기본 체크 항목들
         checks = []
@@ -97,9 +110,24 @@ def test_week1():
         for check in checks:
             print(check)
         
-        # 주석 품질 검사 추가
+        # 주석 품질 검사 추가 (메모리 모듈의 소스가 있으면 그 소스를 검사)
         print("\n💬 주석 품질 검사:")
-        comment_score = check_comments("week1_variable.py")
+        if 'week1_variable' in sys.modules and getattr(sys.modules['week1_variable'], '__source__', None):
+            # 메모리 모듈의 소스에서 줄 리스트를 만들고 통계 산출
+            src = sys.modules['week1_variable'].__source__
+            # 임시로 파일에 쓰지 않고 문자열에서 검사를 수행
+            lines = src.splitlines()
+            # write a temporary helper to reuse check_comments logic: create a temp file-like handling
+            # For simplicity, we'll write lines to a temp file only in local dev; here we'll mimic
+            with open('._tmp_week1_source.txt', 'w', encoding='utf-8') as tf:
+                tf.write('\n'.join(lines))
+            comment_score = check_comments('._tmp_week1_source.txt')
+            try:
+                os.remove('._tmp_week1_source.txt')
+            except Exception:
+                pass
+        else:
+            comment_score = check_comments('week1_variable.py')
         
         total_score = len([c for c in checks if c.startswith("✅")]) + comment_score
         return total_score

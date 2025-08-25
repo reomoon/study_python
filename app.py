@@ -72,9 +72,22 @@ def index():
         username = request.form["username"]
         code = request.form["code"]
         week = request.form["week"]
-        # 제출 코드를 파일로 저장
-        with open("week1_variable.py", "w", encoding="utf-8") as f:
-            f.write(code)
+        # 제출 코드를 파일로 저장 (Vercel은 읽기 전용 파일 시스템이므로 파일 쓰기 금지)
+        # 대신 메모리 모듈을 생성해 `week1_variable` 이름으로 sys.modules에 주입합니다.
+        import types
+        module_name = 'week1_variable'
+        module = types.ModuleType(module_name)
+        try:
+            exec(code, module.__dict__)
+            # 제출 원본을 모듈에 보관하면 채점기가 메모리 모듈의 출력/주석을 검사할 수 있습니다.
+            module.__source__ = code
+            sys.modules[module_name] = module
+        except Exception as e:
+            import traceback
+            tb = traceback.format_exc()
+            result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
+            return render_template_string(HTML, problem=PROBLEM, result=result)
+
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
         # Vercel 같은 서버리스 환경에서는 subprocess 사용이 제한되거나 실패할 수 있으므로,
