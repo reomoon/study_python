@@ -65,7 +65,12 @@ def index():
     # test_checker.py 실행
     import subprocess
     try:
-        output = subprocess.check_output([sys.executable, "test_checker.py"], stderr=subprocess.STDOUT, text=True)
+        output = subprocess.check_output(
+            [sys.executable, "test_checker.py"],
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
         result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
     except Exception as e:
         output = str(e)
