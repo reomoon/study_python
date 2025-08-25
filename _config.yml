@@ -1,5 +1,5 @@
 theme: minima
-title: 🐍 Python 기초 스터디
+title: Python 기초 스터디
 description: 초보자도 쉽게! 함께 배우는 파이썬 프로그래밍 스터디
 plugins:
   - jekyll-feed
