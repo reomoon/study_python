@@ -4,17 +4,33 @@ from flask import Flask, render_template_string, request
 import io
 import sys
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")  # 환경변수로 토큰 관리
-GITHUB_REPO = "reomoon/study_python"
+# 간단한 설명:
+# - 이 앱은 웹에서 파이썬 답안을 받아서 내부에서 실행(메모리 모듈) 후
+#   로컬 채점기(test_checker.run_week)를 호출해 채점 결과를 보여주고
+#   (옵션) GitHub 이슈를 생성합니다.
+
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")  # GitHub API 호출에 사용할 토큰 (환경변수 권장)
+GITHUB_REPO = "reomoon/study_python"  # 이 리포지토리에 이슈를 생성합니다.
 
 app = Flask(__name__)
 
-# problem 폴더에서 불러와 문제를 출력
-try:
-    with open("problem/problem_week1.html", "r", encoding="utf-8") as f:
-        PROBLEM = f.read()
-except Exception as e:
-    PROBLEM = f"문제 파일을 불러올 수 없습니다: {e}"
+# 기본 문제 로드는 요청 시 처리합니다. (동적 주차 선택 지원)
+PROBLEM = "문제 파일을 불러올 수 없습니다."  # 템플릿 렌더링용 기본값
+
+# 각 주차별 수업(클래스) 이름: 선택창 옆에 표시됩니다.
+# 필요하면 여기 문구를 수정하세요.
+WEEK_OPTIONS = [
+    ('1', '변수와 출력'),
+    ('2', '데이터 타입과 연산'),
+    ('3', '조건문과 반복문'),
+    ('4', '함수 기초'),
+    ('5', '자료구조 기초'),
+    ('6', '파일 입출력'),
+    ('7', '모듈과 패키지'),
+    ('8', '예외 처리와 테스트'),
+    ('9', '객체지향 기초'),
+    ('10','간단한 프로젝트')
+]
 
 # 채점 스크립트
 HTML = '''
@@ -22,17 +38,10 @@ HTML = '''
 <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:20px;">{{ problem|safe }}</div>
 <form method="post" onsubmit="document.getElementById('code').value = editor.getValue();">
     이름: <input name="username" required><br><br>
-    주차: <select name="week">
-        <option value="1">1주차</option>
-        <option value="2">2주차</option>
-        <option value="3">3주차</option>
-        <option value="4">4주차</option>
-        <option value="5">5주차</option>
-        <option value="6">6주차</option>
-        <option value="7">7주차</option>
-        <option value="8">8주차</option>
-        <option value="9">9주차</option>
-        <option value="10">10주차</option>
+    주차: <select name="week" onchange="onWeekChange(this.value)"> <!-- 선택 시 GET으로 재요청해 문제를 변경 -->
+        {% for k, label in week_options %}
+            <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
+        {% endfor %}
     </select><br><br>
     답안 코드:<br>
     <textarea id="code" name="code" style="display:none"></textarea>
@@ -58,6 +67,14 @@ var editor = CodeMirror(document.getElementById('editor'), {
         }
 });
 </script>
+<script>
+function onWeekChange(v) {
+    // reload the page with selected week as query param (GET)
+    const params = new URLSearchParams(window.location.search);
+    params.set('week', v);
+    window.location.search = params.toString();
+}
+</script>
 {% if result %}
 <hr>
 <b>결과:</b><br>
@@ -67,15 +84,26 @@ var editor = CodeMirror(document.getElementById('editor'), {
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    # result: 템플릿에 표시할 채점/오류 메시지
     result = ""
+    # selected_week: GET 쿼리 또는 POST 폼에서 선택된 주차 (기본 1)
+    selected_week = request.args.get('week', '1')
     if request.method == "POST":
         username = request.form["username"]
         code = request.form["code"]
         week = request.form["week"]
+        selected_week = str(week)
+        # 동적 문제 로드
+        problem_path = f"problem/problem_week{week}.html"
+        try:
+            with open(problem_path, 'r', encoding='utf-8') as pf:
+                PROBLEM_TXT = pf.read()
+        except Exception as e:
+            PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
         # 제출 코드를 파일로 저장 (Vercel은 읽기 전용 파일 시스템이므로 파일 쓰기 금지)
-        # 대신 메모리 모듈을 생성해 `week1_variable` 이름으로 sys.modules에 주입합니다.
+        # 대신 메모리 모듈을 생성해 `week{N}_variable` 이름으로 sys.modules에 주입합니다.
         import types
-        module_name = 'week1_variable'
+        module_name = f'week{week}_variable'
         module = types.ModuleType(module_name)
         try:
             exec(code, module.__dict__)
@@ -85,8 +113,9 @@ def index():
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
+            # 실행 중 예외가 발생하면 즉시 사용자에게 보여주고 중단
             result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
-            return render_template_string(HTML, problem=PROBLEM, result=result)
+            return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS)
 
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
@@ -99,6 +128,8 @@ def index():
             from io import StringIO
 
             buf = StringIO()
+            # test_checker를 임포트(또는 reload)하고 run_week(week)을 호출하여
+            # stdout으로 출력되는 채점 메시지를 캡처합니다.
             with contextlib.redirect_stdout(buf):
                 # 이미 임포트되어 있을 수 있으므로 reload로 최신 상태 반영
                 if 'test_checker' in sys.modules:
@@ -116,6 +147,7 @@ def index():
             result = f"❌ 자동 채점 중 에러 발생:<br><pre>{output}</pre>"
 
         # GitHub 이슈 생성
+        # GitHub 이슈 생성: 토큰이 있으면 채점 결과와 원본 코드를 리포에 등록
         if GITHUB_TOKEN:
             issue_title = f"[{week}주차] {username} 답안 제출"
             issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**자동 채점 결과:**\n```
@@ -135,7 +167,15 @@ def index():
             result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
 
     # 렌더링 결과 반환
-    return render_template_string(HTML, problem=PROBLEM, result=result)
+    # GET이든 POST이든 selected_week에 따라 문제 로드
+    # 요청된 주차의 문제 파일을 로드해서 템플릿에 전달
+    try:
+        with open(f"problem/problem_week{selected_week}.html", 'r', encoding='utf-8') as pf:
+            PROBLEM_TXT = pf.read()
+    except Exception as e:
+        PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
+
+    return render_template_string(HTML, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS)
 
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
