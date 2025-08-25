@@ -1,8 +1,55 @@
 import os
 import requests
-from flask import Flask, render_template_string, request
+from flask import Flask, render_template_string, request, Response
 import io
 import sys
+import contextlib
+import builtins
+
+# Some Python environments (or older stdlib snapshots) may not provide
+# contextlib.redirect_stdin. Provide a small compatibility shim so the
+# rest of the code can always use contextlib.redirect_stdin.
+if not hasattr(contextlib, "redirect_stdin"):
+    class _RedirectStdin:
+        def __init__(self, new_stdin):
+            self._new_stdin = new_stdin
+            self._old_stdin = None
+
+        def __enter__(self):
+            self._old_stdin = sys.stdin
+            sys.stdin = self._new_stdin
+            return self._new_stdin
+
+        def __exit__(self, exc_type, exc, tb):
+            sys.stdin = self._old_stdin
+
+    contextlib.redirect_stdin = _RedirectStdin
+
+# 대신하는 입력 교체용 컨텍스트매니저: 제출 폼의 stdin 텍스트를
+# 줄 단위로 소비하는 임시 input() 구현으로 교체합니다.
+class RedirectInput:
+    def __init__(self, text):
+        # splitlines()는 빈 문자열에 대해 빈 리스트를 반환합니다.
+        self._lines = text.splitlines()
+        self._iter = iter(self._lines)
+        self._old_input = None
+
+    def __enter__(self):
+        self._old_input = builtins.input
+
+        def _inp(prompt=None):
+            try:
+                return next(self._iter)
+            except StopIteration:
+                # 원래 input()이 더 이상 읽을 게 없으면 EOFError를 발생시킵니다.
+                raise EOFError("No more input")
+
+        builtins.input = _inp
+        return builtins.input
+
+    def __exit__(self, exc_type, exc, tb):
+        builtins.input = self._old_input
+
 
 # 간단한 설명:
 # - 이 앱은 웹에서 파이썬 답안을 받아서 내부에서 실행(메모리 모듈) 후
@@ -34,7 +81,7 @@ WEEK_OPTIONS = [
 HTML = '''
 <h2>Python 기초 스터디 자동 채점기</h2>
 <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:20px;">{{ problem|safe }}</div>
-<form method="post" onsubmit="document.getElementById('code').value = editor.getValue();">
+<form method="post" onsubmit="return beforeSubmit();">
     이름: <input name="username" required><br><br>
     주차: <select name="week" onchange="onWeekChange(this.value)"> <!-- 선택 시 GET으로 재요청해 문제를 변경 -->
         {% for k, label in week_options %}
@@ -44,28 +91,59 @@ HTML = '''
     표준 입력 (각 input() 호출마다 한 줄씩 넣어주세요):<br>
     <textarea name="stdin" rows="4" style="width:400px" placeholder="예 (각 줄이 하나의 input()에 대응):\nAlice\n25\n"></textarea><br><br>
     답안 코드:<br>
+    <div style="margin-bottom:8px;">
+        <button type="button" onclick="loadExample()">예제 불러오기</button>
+        <button type="button" onclick="copyCode()">코드 복사</button>
+    </div>
     <textarea id="code" name="code" style="display:none"></textarea>
-            <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:350px; width:800px; margin-bottom:10px; overflow-y:auto;"></div><br>
+            <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:420px; width:100%; max-width:1000px; margin-bottom:10px; overflow-y:auto;"></div><br>
     <button type="submit">제출</button>
 </form>
+<!-- CodeMirror 스타일/애드온 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/comment/comment.min.js"></script>
 <script>
 var editor = CodeMirror(document.getElementById('editor'), {
         value: '',
         mode: 'python',
-        theme: 'default',
+        theme: 'material',
+        styleActiveLine: true,
         lineNumbers: true,
         indentUnit: 4,
         indentWithTabs: true,
+        matchBrackets: true,
         autoCloseBrackets: true,
         tabSize: 4,
         extraKeys: {
-                Tab: function(cm) { cm.replaceSelection('    ', 'end'); }
+                Tab: function(cm) { cm.replaceSelection('    ', 'end'); },
+                'Ctrl-/': 'toggleComment'
         }
 });
+
+function copyCode(){
+    const code = editor.getValue();
+    navigator.clipboard && navigator.clipboard.writeText(code);
+    alert('코드가 클립보드에 복사되었습니다.');
+}
+
+function loadExample(){
+    const week = document.getElementsByName('week')[0].value;
+    fetch('/example?week=' + encodeURIComponent(week)).then(r=>{
+        if(!r.ok) throw new Error('예제 로드 실패');
+        return r.text();
+    }).then(txt=>{
+        editor.setValue(txt);
+    }).catch(e=>alert(String(e)));
+}
 </script>
 <script>
 function onWeekChange(v) {
@@ -73,6 +151,36 @@ function onWeekChange(v) {
     const params = new URLSearchParams(window.location.search);
     params.set('week', v);
     window.location.search = params.toString();
+}
+</script>
+<script>
+// 제출 전에 에디터의 코드를 hidden textarea에 넣고,
+// 코드에 input() 호출이 있으나 stdin이 비어있으면 브라우저에서
+// 순차적으로 prompt()로 입력값을 받아 채워줍니다.
+function beforeSubmit(){
+    // 코드 동기화
+    document.getElementById('code').value = editor.getValue();
+    const code = editor.getValue();
+    const stdinElem = document.getElementsByName('stdin')[0];
+    const stdinVal = (stdinElem && stdinElem.value) ? stdinElem.value.trim() : '';
+
+    // 간단한 패턴으로 input( 호출 수를 센다
+    const re = /(^|[^A-Za-z0-9_])input\s*\(/g;
+    let count = 0;
+    while(re.exec(code) !== null) count++;
+
+    if(count > 0 && stdinVal === ''){
+        const inputs = [];
+        for(let i=0;i<count;i++){
+            const v = window.prompt('입력값을 입력하세요 (input() 호출 #' + (i+1) + ')\n취소하면 제출이 중단됩니다.');
+            if(v === null){
+                return false; // 제출 취소
+            }
+            inputs.push(v);
+        }
+        stdinElem.value = inputs.join('\n');
+    }
+    return true;
 }
 </script>
 {% if result %}
@@ -120,9 +228,9 @@ def index():
             import contextlib
             buf_exec = io.StringIO()
             stdin_text = request.form.get('stdin', '')
-            # Provide the supplied stdin to input() calls using redirect_stdin
+            # Provide the supplied stdin to input() calls using RedirectInput
             try:
-                with contextlib.redirect_stdout(buf_exec), contextlib.redirect_stdin(io.StringIO(stdin_text)):
+                with contextlib.redirect_stdout(buf_exec), RedirectInput(stdin_text):
                     exec(code, module.__dict__)
             except EOFError as ee:
                 # Provide a clearer message for missing input
@@ -216,3 +324,14 @@ def index():
 # if __name__ == "__main__":
 #     port = int(os.environ.get("PORT", 5555))
 #     app.run(port=port)
+
+
+@app.route('/example')
+def example():
+    week = request.args.get('week', '1')
+    path = f"examples/week{week}_example.py"
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return Response(f.read(), mimetype='text/plain; charset=utf-8')
+    except Exception as e:
+        return Response(f"# 예제 파일을 찾을 수 없습니다: {e}", mimetype='text/plain; charset=utf-8')
