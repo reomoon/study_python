@@ -86,8 +86,10 @@ def index():
             )
             result = f"<b>자동 채점 결과:</b><br><pre>{output}</pre><br>✅ 정상 실행!"
         except Exception as e:
-            output = str(e)
-            result = f"❌ 자동 채점 중 에러 발생: {e}"
+            import traceback
+            tb = traceback.format_exc()
+            output = f"{e}\n\n{tb}"
+            result = f"❌ 자동 채점 중 에러 발생:<br><pre>{output}</pre>"
 
         # GitHub 이슈 생성
         if GITHUB_TOKEN:
