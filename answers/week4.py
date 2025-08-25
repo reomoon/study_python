@@ -25,6 +25,17 @@ def run(week_module):
             module = mod
         except Exception:
             module = None
+        if module is None:
+            try:
+                spec = importlib.util.spec_from_file_location('week4', 'examples/week4_example.py')
+                mod = importlib.util.module_from_spec(spec)
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
+                    spec.loader.exec_module(mod)
+                output = f.getvalue()
+                module = mod
+            except Exception:
+                module = None
 
     checks = []
     # 1) 짝수/홀수 관련 출력을 대략 검증

@@ -17,7 +17,7 @@ def run(week_module):
                 print(f"❌ 코드 실행 오류: {e}")
         output = f.getvalue()
     else:
-        # try file fallback
+        # try file fallback (root) then examples/
         try:
             spec = importlib.util.spec_from_file_location('week3', 'week3_io.py')
             mod = importlib.util.module_from_spec(spec)
@@ -28,6 +28,17 @@ def run(week_module):
             module = mod
         except Exception:
             module = None
+        if module is None:
+            try:
+                spec = importlib.util.spec_from_file_location('week3', 'examples/week3_example.py')
+                mod = importlib.util.module_from_spec(spec)
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
+                    spec.loader.exec_module(mod)
+                output = f.getvalue()
+                module = mod
+            except Exception:
+                module = None
 
     checks = []
     # 1) Hello, world!

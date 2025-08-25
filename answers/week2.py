@@ -20,6 +20,7 @@ def run(week_module):
             output = f.getvalue()
 
     if module is None:
+        # try root file then examples/
         try:
             spec = importlib.util.spec_from_file_location('week2', 'week2_datatype.py')
             module = importlib.util.module_from_spec(spec)
@@ -29,6 +30,16 @@ def run(week_module):
             output = f.getvalue()
         except Exception:
             module = None
+        if module is None:
+            try:
+                spec = importlib.util.spec_from_file_location('week2', 'examples/week2_example.py')
+                module = importlib.util.module_from_spec(spec)
+                f = io.StringIO()
+                with contextlib.redirect_stdout(f):
+                    spec.loader.exec_module(module)
+                output = f.getvalue()
+            except Exception:
+                module = None
 
     checks = []
 
