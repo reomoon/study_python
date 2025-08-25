@@ -160,7 +160,15 @@ def index():
             data = {"title": issue_title, "body": issue_body}
             r = requests.post(f"https://api.github.com/repos/reomoon/study_python/issues", json=data, headers=headers)
             if r.status_code == 201:
-                result += "<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!"
+                # API가 반환한 생성된 이슈의 HTML URL을 가져와서 사용자에게 링크로 제공
+                try:
+                    issue_url = r.json().get('html_url')
+                except Exception:
+                    issue_url = None
+                if issue_url:
+                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a>"
+                else:
+                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: https://github.com/{GITHUB_REPO}/issues"
             else:
                 result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
         else:
