@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Python 기초 스터디 자동 채점기</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/eclipse.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; padding: 30px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 30px; }
+        h2 { text-align: center; }
+        .problem { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 18px; }
+        label { font-weight: bold; }
+        #code { height: 220px; }
+        .cm-editor { border-radius: 8px; border: 1px solid #ccc; }
+        button { background: #3498db; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-size: 1em; cursor: pointer; }
+        button:hover { background: #217dbb; }
+        .result { margin-top: 30px; background: #f6f6f6; padding: 18px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Python 기초 스터디 자동 채점기</h2>
+    <div class="problem">
+        {{ problem|safe }}
+    </div>
+    <form method="post">
+        <div class="form-group">
+            <label for="username">이름:</label>
+            <input name="username" id="username" required style="width:200px;">
+        </div>
+        <div class="form-group">
+            <label for="code">답안 코드:</label>
+            <textarea name="code" id="code"></textarea>
+        </div>
+        <button type="submit">제출</button>
+    </form>
+    {% if result %}
+    <div class="result">
+        <b>결과:</b><br>
+        {{ result|safe }}
+    </div>
+    {% endif %}
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+<script>
+    var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+        mode: 'python',
+        theme: 'eclipse',
+        lineNumbers: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: true,
+        autofocus: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        styleActiveLine: true
+    });
+    // 폼 제출 시 에디터 내용 textarea에 반영
+    document.querySelector('form').addEventListener('submit', function() {
+        editor.save();
+    });
+</script>
+</body>
+</html>

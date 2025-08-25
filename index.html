@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 Python 기초 스터디</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+        .week-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .week-table th, .week-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .week-table th {
+            background-color: #3498db;
+            color: white;
+        }
+        .week-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .step {
+            background: #e8f5e8;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">🐍</span> Python 기초 스터디</h1>
+        <p class="subtitle">초보자도 쉽게! 함께 배우는 파이썬 프로그래밍</p>
+        
+        <div class="highlight">
+            <h2><span class="emoji">🎯</span> 스터디 목표</h2>
+            <p>10주 동안 Python 기초부터 클래스까지 마스터하기!</p>
+            <a href="https://github.com/reomoon/study_python" class="btn">GitHub 바로가기</a>
+            <a href="#guide" class="btn">참여방법 보기</a>
+        </div>
+
+        <div class="section">
+            <h2><span class="emoji">📚</span> 학습 계획 (10주 과정)</h2>
+            <table class="week-table">
+                <thead>
+                    <tr>
+                        <th>주차</th>
+                        <th>주제</th>
+                        <th>학습 내용</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1주차</td>
+                        <td>변수</td>
+                        <td>데이터를 담는 상자 만들기</td>
+                        <td><span class="emoji">🔄</span> 진행중</td>
+                    </tr>
+                    <tr>
+                        <td>2주차</td>
+                        <td>자료형</td>
+                        <td>숫자, 문자, 참/거짓 구분하기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                    <tr>
+                        <td>3주차</td>
+                        <td>출력/입력</td>
+                        <td>화면에 보여주고 사용자한테 받기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                    <tr>
+                        <td>4주차</td>
+                        <td>조건문/예외처리</td>
+                        <td>만약에~라면, 에러 처리하기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                    <tr>
+                        <td>5주차</td>
+                        <td>반복문</td>
+                        <td>같은 일 여러 번 시키기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                    <tr>
+                        <td>6주차</td>
+                        <td>함수/모듈</td>
+                        <td>코드 정리하고 재사용하기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                    <tr>
+                        <td>9주차</td>
+                        <td>파일 입출력</td>
+                        <td>파일 읽고 쓰기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                    <tr>
+                        <td>10주차</td>
+                        <td>클래스</td>
+                        <td>객체 만들기</td>
+                        <td><span class="emoji">⏳</span> 예정</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section" id="guide">
+            <h2><span class="emoji">🚀</span> 참여하는 방법</h2>
+            
+            <div class="step">
+                <h3><span class="emoji">📥</span> 1단계: 프로젝트 다운로드</h3>
+                <div class="code-block">
+git clone https://github.com/reomoon/study_python.git
+cd study_python
+git checkout template/week1
+git checkout -b study/본인이름
+                </div>
+            </div>
+
+            <div class="step">
+                <h3><span class="emoji">✏️</span> 2단계: 문제 풀기</h3>
+                <p>VS Code로 <code>week1_variable.py</code> 파일을 열어서 답안을 작성하세요!</p>
+                <div class="code-block">
+# 답을 아래에 작성하세요.
+x = 7  # 여기에 답안 작성!
+print("x =", x)
+                </div>
+            </div>
+
+            <div class="step">
+                <h3><span class="emoji">📤</span> 3단계: 제출하기</h3>
+                <div class="code-block">
+git add .
+git commit -m "1주차 변수 문제 완료"
+git push origin study/본인이름
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="emoji">🤖</span> 자동 도우미 기능</h2>
+            <ul>
+                <li><strong>즉시 격려 메시지</strong>: Push하면 바로 응원 댓글이 달려요!</li>
+                <li><strong>매일 학습 리포트</strong>: 오후 6시에 자동으로 진도 체크</li>
+                <li><strong>코드 품질 검사</strong>: 문법, 스타일, 주석까지 자동 체크</li>
+                <li><strong>AI 선생님</strong>: 24시간 자동으로 도와드려요!</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2><span class="emoji">📋</span> 스터디 규칙</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: #d5f5d5; padding: 15px; border-radius: 8px;">
+                    <h3><span class="emoji">✅</span> 이렇게 해주세요</h3>
+                    <ul>
+                        <li>구글 검색 적극 활용</li>
+                        <li>주석 열심히 달기</li>
+                        <li>에러 무서워하지 말기</li>
+                        <li>서로 도와주기</li>
+                    </ul>
+                </div>
+                <div style="background: #f5d5d5; padding: 15px; border-radius: 8px;">
+                    <h3><span class="emoji">❌</span> 이런 건 하지 말아요</h3>
+                    <ul>
+                        <li>ChatGPT, Copilot 사용</li>
+                        <li>다른 사람 코드 복사</li>
+                        <li>답안 공유</li>
+                        <li>에러 나도 그냥 푸시</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight">
+            <h2><span class="emoji">🏆</span> 함께 Python 마스터가 되어봐요!</h2>
+            <p>10주 후에는 여러분도 혼자서 프로그램을 만들 수 있을 거예요!</p>
+            <a href="https://github.com/reomoon/study_python/blob/main/GUIDE.md" class="btn">자세한 가이드 보기</a>
+        </div>
+    </div>
+</body>
+</html>
