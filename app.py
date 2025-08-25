@@ -78,6 +78,13 @@ function onWeekChange(v) {
 {% if result %}
 <hr>
 <b>결과:</b><br>
+{% if student_output %}
+<pre>{{ student_output|e }}</pre>
+{% endif %}
+{% if checker_output %}
+<h4>채점기 출력</h4>
+<pre>{{ checker_output|e }}</pre>
+{% endif %}
 {{ result|safe }}
 {% endif %}
 '''
@@ -88,6 +95,8 @@ def index():
     result = ""
     # selected_week: GET 쿼리 또는 POST 폼에서 선택된 주차 (기본 1)
     selected_week = request.args.get('week', '1')
+    student_output = ''
+    checker_output = ''
     if request.method == "POST":
         username = request.form["username"]
         code = request.form["code"]
@@ -121,7 +130,7 @@ def index():
             tb = traceback.format_exc()
             # 실행 중 예외가 발생하면 즉시 사용자에게 보여주고 중단
             result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
-            return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS)
+            return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output)
 
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
@@ -144,16 +153,8 @@ def index():
                     import test_checker
                     importlib.reload(test_checker)
                     test_checker.run_week(week)
-            output = buf.getvalue()
-            # 학생 코드 출력과 채점 출력을 함께 보여줍니다.
-            combined = """
-학생 코드 출력:
-{student}
-
-채점기 출력:
-{checker}
-""".format(student=student_output, checker=output)
-            result = f"<b>자동 채점 결과:</b><br><pre>{combined}</pre><br>✅ 정상 실행!"
+            checker_output = buf.getvalue()
+            result = f"<b>자동 채점 결과:</b><br>✅ 정상 실행!"
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
@@ -164,8 +165,10 @@ def index():
         # GitHub 이슈 생성: 토큰이 있으면 채점 결과와 원본 코드를 리포에 등록
         if GITHUB_TOKEN:
             issue_title = f"[{week}주차] {username} 답안 제출"
-            issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**자동 채점 결과:**\n```
-{output}
+            issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**학생 코드 출력:**\n```
+{student_output}
+```\n\n**자동 채점 결과:**\n```
+{checker_output}
 ```"""
             headers = {
                 "Authorization": f"token {GITHUB_TOKEN}",
@@ -180,9 +183,10 @@ def index():
                 except Exception:
                     issue_url = None
                 if issue_url:
-                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a>"
+                    # Make the issue link text smaller so it doesn't dominate the result area
+                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <span style=\"font-size:0.9em;\"><a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a></span>"
                 else:
-                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: https://github.com/{GITHUB_REPO}/issues"
+                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: <span style=\"font-size:0.9em;\">https://github.com/{GITHUB_REPO}/issues</span>"
             else:
                 result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
         else:
@@ -197,7 +201,7 @@ def index():
     except Exception as e:
         PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
 
-    return render_template_string(HTML, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS)
+    return render_template_string(HTML, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output)
 
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
