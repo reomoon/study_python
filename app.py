@@ -10,8 +10,11 @@ GITHUB_REPO = "reomoon/study_python"
 app = Flask(__name__)
 
 # problem 폴더에서 불러와 문제를 출력
-with open("problem/problem_week1.html", "r", encoding="utf-8") as f:
-    PROBLEM = f.read()
+try:
+    with open("problem/problem_week1.html", "r", encoding="utf-8") as f:
+        PROBLEM = f.read()
+except Exception as e:
+    PROBLEM = f"문제 파일을 불러올 수 없습니다: {e}"
 
 # 채점 스크립트
 HTML = '''
