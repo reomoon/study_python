@@ -102,10 +102,15 @@ HTML = '''
 <!-- Monaco Editor (VSCode 기반 에디터) -->
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
 <script>
+// 서버에서 전달된 제출 코드를 JS로 주입하여 제출 후에도 에디터가 유지되도록 함
+var initialCode = "";
+try {
+    initialCode = {{ submitted_code|tojson | default('""') }};
+} catch(e) { initialCode = ""; }
 require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
 require(['vs/editor/editor.main'], function() {
     window.editor = monaco.editor.create(document.getElementById('editor'), {
-        value: '',
+        value: initialCode || '',
         language: 'python',
         theme: 'vs-dark',
         automaticLayout: true,
@@ -113,6 +118,10 @@ require(['vs/editor/editor.main'], function() {
         fontFamily: 'Consolas, "Courier New", monospace',
         fontSize: 13
     });
+    try{
+        var codeElem = document.getElementById('code');
+        if(codeElem) codeElem.value = initialCode || '';
+    }catch(e){}
 });
 
 function copyCode(){
