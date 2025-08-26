@@ -1,6 +1,6 @@
 import os
 import requests
-from flask import Flask, render_template_string, request, Response
+from flask import Flask, render_template, request, Response
 import io
 import sys
 import contextlib
@@ -80,133 +80,9 @@ WEEK_OPTIONS = [
 # 채점 스크립트
 HTML = '''
 <h2>Python 기초 스터디 자동 채점기</h2>
-<div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:20px;">{{ problem|safe }}</div>
-<form method="post" onsubmit="return beforeSubmit();">
-    이름: <input name="username" required><br><br>
-    주차: <select name="week" onchange="onWeekChange(this.value)"> <!-- 선택 시 GET으로 재요청해 문제를 변경 -->
-        {% for k, label in week_options %}
-            <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
-        {% endfor %}
-    </select><br><br>
-    표준 입력 (각 input() 호출마다 한 줄씩 넣어주세요):<br>
-    <textarea name="stdin" rows="4" style="width:400px" placeholder="예 (각 줄이 하나의 input()에 대응):\nAlice\n25\n"></textarea><br><br>
-    답안 코드:<br>
-    <div style="margin-bottom:8px;">
-        <button type="button" onclick="loadExample()">예제 불러오기</button>
-        <button type="button" onclick="copyCode()">코드 복사</button>
-    </div>
-    <textarea id="code" name="code" style="display:none"></textarea>
-            <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:420px; width:100%; max-width:1000px; margin-bottom:10px; overflow-y:auto;"></div><br>
-    <button type="submit">제출</button>
-</form>
-<!-- Monaco Editor (VSCode 기반 에디터) -->
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
-<script>
-// 서버에서 전달된 제출 코드를 JS로 주입하여 제출 후에도 에디터가 유지되도록 함
-var initialCode = "";
-try {
-    initialCode = {{ submitted_code|tojson | default('""') }};
-} catch(e) { initialCode = ""; }
-require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
-require(['vs/editor/editor.main'], function() {
-    window.editor = monaco.editor.create(document.getElementById('editor'), {
-        value: initialCode || '',
-        language: 'python',
-        theme: 'vs-dark',
-        automaticLayout: true,
-        minimap: { enabled: false },
-        fontFamily: 'Consolas, "Courier New", monospace',
-        fontSize: 13
-    });
-    try{
-        var codeElem = document.getElementById('code');
-        if(codeElem) codeElem.value = initialCode || '';
-    }catch(e){}
-});
-
-function copyCode(){
-    const code = window.editor && window.editor.getValue ? window.editor.getValue() : '';
-    navigator.clipboard && navigator.clipboard.writeText(code);
-    alert('코드가 클립보드에 복사되었습니다.');
-}
-
-function loadExample(){
-    const week = document.getElementsByName('week')[0].value;
-    fetch('/example?week=' + encodeURIComponent(week)).then(r=>{
-        if(!r.ok) throw new Error('예제 로드 실패');
-        return r.text();
-    }).then(txt=>{
-        if(window.editor && window.editor.setValue) window.editor.setValue(txt);
-    }).catch(e=>alert(String(e)));
-}
-</script>
-<script>
-function onWeekChange(v) {
-    // reload the page with selected week as query param (GET)
-    const params = new URLSearchParams(window.location.search);
-    params.set('week', v);
-    window.location.search = params.toString();
-}
-</script>
-<script>
-// 제출 전에 에디터의 코드를 hidden textarea에 넣고,
-// 코드에 input() 호출이 있으나 stdin이 비어있으면 브라우저에서
-// 순차적으로 prompt()로 입력값을 받아 채워줍니다.
-window.beforeSubmit = function(){
-    // 안전하게 에디터 값 읽기
-    var code = '';
-    try{
-        if(window.editor && typeof window.editor.getValue === 'function'){
-            code = window.editor.getValue();
-        }else if(typeof editor !== 'undefined' && editor && typeof editor.getValue === 'function'){
-            code = editor.getValue();
-        }
-    }catch(e){
-        // 무시: 에디터 접근 중 예외가 나더라도 제출이 막히지 않도록 함
-        code = '';
-    }
-    var codeElem = document.getElementById('code');
-    if(codeElem) codeElem.value = code;
-    var stdinElem = document.getElementsByName('stdin')[0];
-    var stdinVal = (stdinElem && stdinElem.value) ? stdinElem.value.trim() : '';
-
-    // 간단한 패턴으로 input( 호출 수를 센다
-    var re = /(^|[^A-Za-z0-9_])input\s*\(/g;
-    var count = 0;
-    var m;
-    while((m = re.exec(code)) !== null) count++;
-
-    if(count > 0 && stdinVal === ''){
-        var inputs = [];
-        for(var i=0;i<count;i++){
-            var v = window.prompt('입력값을 입력하세요 (input() 호출 #' + (i+1) + ')\n취소하면 제출이 중단됩니다.');
-            if(v === null){
-                return false; // 제출 취소
-            }
-            inputs.push(v);
-        }
-        if(stdinElem) stdinElem.value = inputs.join('\n');
-    }
-    return true;
-};
-</script>
-{% if result %}
-<hr>
-<b>결과:</b><br>
-{% if student_output %}
-<pre>{{ student_output|e }}</pre>
-{% endif %}
-{% if checker_output %}
-<h4>채점기 출력</h4>
-<pre>{{ checker_output|e }}</pre>
-{% endif %}
-{% if submitted_code %}
-<h4>제출한 코드</h4>
-<pre>{{ submitted_code|e }}</pre>
-{% endif %}
-{{ result|safe }}
-{% endif %}
 '''
+# 템플릿 파일명 사용
+TEMPLATE_NAME = 'index.html'
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -218,9 +94,19 @@ def index():
     checker_output = ''
     submitted_code = ''
     if request.method == "POST":
-        username = request.form["username"]
-        code = request.form["code"]
-        week = request.form["week"]
+        # Use .get to avoid BadRequestKeyError which results in HTTP 400 when a field is missing.
+        username = request.form.get("username", "").strip()
+        code = request.form.get("code", "")
+        week = request.form.get("week", "1")
+        # Basic validation: if required fields are missing, show a friendly message instead of HTTP 400.
+        if not username or not code:
+            result = "❌ 제출 요청에 필수 항목이 없습니다. 브라우저에서 '이름'과 '답안 코드'가 전송되는지 확인하세요. 네트워크 탭의 Form Data를 확인하면 문제 원인을 알 수 있습니다."
+            try:
+                with open(f"problem/problem_week{selected_week}.html", 'r', encoding='utf-8') as pf:
+                    PROBLEM_TXT = pf.read()
+            except Exception as e:
+                PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
+            return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
         selected_week = str(week)
         submitted_code = code
         # 동적 문제 로드
@@ -249,7 +135,7 @@ def index():
                 # Provide a clearer message for missing input
                 student_output = buf_exec.getvalue()
                 result = f"❌ 제출 코드 실행 중 에러: 입력이 필요합니다 (EOF).\n입력값이 필요한 경우 제출 폼의 '표준 입력' 칸에 값을 넣어주세요.\n\n에러: {ee}"
-                return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
+                return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
             student_output = buf_exec.getvalue()
             # 제출 원본을 모듈에 보관하면 채점기가 메모리 모듈의 출력/주석을 검사할 수 있습니다.
             module.__source__ = code
@@ -259,7 +145,7 @@ def index():
             tb = traceback.format_exc()
             # 실행 중 예외가 발생하면 즉시 사용자에게 보여주고 중단
             result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
-            return render_template_string(HTML, problem=PROBLEM, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
+            return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
@@ -330,8 +216,7 @@ def index():
     except Exception as e:
         PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
 
-    return render_template_string(HTML, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
-
+    return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
 # if __name__ == "__main__":
