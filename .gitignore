@@ -1,0 +1,63 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+.venv/
+env/
+env.bak/
+venv.bak/
+
+# Pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+.coverage.*
+.cache
+htmlcov/
+coverage.xml
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+__pycache__/
