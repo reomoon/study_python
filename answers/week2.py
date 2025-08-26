@@ -48,6 +48,8 @@ def run(week_module):
         checks.append('✅ 문제 1: num 변수에 42가 할당됨')
     else:
         checks.append('❌ 문제 1: num이 42인지 확인해주세요')
+    import re
+    # <class 'int'> 같은 출력에서 \b가 동작하지 않을 수 있어 단순 포함 검사로 변경
     if 'int' in output:
         checks.append('✅ 문제 1 출력: 타입 출력 확인')
     else:
@@ -58,7 +60,7 @@ def run(week_module):
         checks.append('✅ 문제 2: a,b 변수 설정 완료')
     else:
         checks.append('❌ 문제 2: a,b 변수 설정을 확인해주세요')
-    if '19' in output:
+    if re.search(r"(?<!\d)19(?!\d)", output):
         checks.append('✅ 문제 2 출력: 덧셈 결과 출력 확인')
     else:
         checks.append('❌ 문제 2 출력: 덧셈 결과가 보이지 않습니다')
@@ -78,8 +80,7 @@ def run(week_module):
         checks.append('✅ 문제 4: numbers 리스트 정의 완료')
     else:
         checks.append('❌ 문제 4: numbers 리스트를 정의해주세요')
-    if 'len' in output or 'sum' in output or any(str(x) in output for x in [0,1,2,3,4,5,6,7,8,9]):
-        # loose check: any numeric output appears
+    if re.search(r"len\s*\(|sum\s*\(|\d+", output):
         checks.append('✅ 문제 4 출력: 리스트 길이나 합이 출력된 것으로 보입니다')
     else:
         checks.append('❌ 문제 4 출력: 리스트 관련 출력이 보이지 않습니다')

@@ -37,33 +37,34 @@ def run(week_module):
             except Exception:
                 module = None
 
+    import re
     checks = []
-    # 1) 짝수/홀수 관련 출력을 대략 검증
-    if '짝' in output or '홀' in output:
+    # 1) 짝수/홀수 관련 출력: 정확한 단어 매치
+    if re.search(r"\b짝\b|\b홀\b", output):
         checks.append('✅ 문제 1: 짝수/홀수 판별 출력 확인')
     else:
         checks.append('❌ 문제 1: 짝수/홀수 출력이 보이지 않습니다')
 
     # 2) 영/음수/양수
-    if any(s in output for s in ['영','음수','양수']):
+    if re.search(r"\b영\b|\b음수\b|\b양수\b", output):
         checks.append('✅ 문제 2: 영/음수/양수 판별 출력 확인')
     else:
         checks.append('❌ 문제 2: 영/음수/양수 출력이 보이지 않습니다')
 
     # 3) 예외 처리
-    if '입력 오류' in output or 'ValueError' in output:
+    if re.search(r"입력 오류|ValueError", output):
         checks.append('✅ 문제 3: 예외 처리 출력 확인')
     else:
         checks.append('❌ 문제 3: 예외 처리 코드 또는 출력이 보이지 않습니다')
 
-    # 4) 10보다 큰지 확인
-    if '10' in output:
+    # 4) 10보다 큰지 확인 — '10' 숫자 단어로 검사
+    if re.search(r"\b10\b", output):
         checks.append('✅ 문제 4: 10 비교 관련 출력 감지')
     else:
         checks.append('❌ 문제 4: 10 비교 출력이 보이지 않습니다')
 
-    # 5) 강제 에러와 처리
-    if '에러' in output or 'Exception' in output:
+    # 5) 에러/Exception 단어만으로는 약하므로 단어 경계로 검사
+    if re.search(r"\b에러\b|\bException\b", output):
         checks.append('✅ 문제 5: 에러 발생/처리 출력 확인')
     else:
         checks.append('❌ 문제 5: 에러 처리 출력이 보이지 않습니다')

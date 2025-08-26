@@ -54,7 +54,8 @@ def run(week_module):
         checks.append('❌ 문제 2: greet 메서드가 없습니다')
 
     # instance usage
-    if any('안녕하세요' in s or '제 이름' in s for s in output.splitlines()):
+    import re
+    if re.search(r"안녕하세요|제 이름", output):
         checks.append('✅ 문제 3: 인스턴스 생성 및 메서드 호출 출력 확인')
     else:
         checks.append('❌ 문제 3: 인스턴스 출력이 보이지 않습니다')
@@ -66,7 +67,8 @@ def run(week_module):
         checks.append('❌ 문제 4: Student 클래스가 없습니다')
 
     # __str__ or __repr__
-    if any('__str__' in (module.__source__ if module and getattr(module,'__source__',None) else '') or '__repr__' in (module.__source__ if module and getattr(module,'__source__',None) else '')):
+    src = module.__source__ if module and getattr(module,'__source__',None) else ''
+    if '__str__' in src or '__repr__' in src:
         checks.append('✅ 문제 5: __str__/__repr__ 구현 감지')
     else:
         checks.append('❌ 문제 5: __str__/__repr__ 구현이 보이지 않습니다')

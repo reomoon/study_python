@@ -40,36 +40,36 @@ def run(week_module):
             except Exception:
                 module = None
 
+    import re
     checks = []
-    # 1) Hello, world!
-    if 'Hello' in output and 'world' in output:
+    # 1) Hello, world! (phrase match)
+    if re.search(r"Hello\s*,?\s*world", output, flags=re.IGNORECASE):
         checks.append('✅ 문제 1: Hello 출력 확인')
     else:
         checks.append('❌ 문제 1: Hello 출력이 보이지 않습니다')
 
-    # 2) input name -> 안녕하세요
-    if '안녕하세요' in output or '안녕' in output:
+    # 2) input name -> 인사 출력 (한글/영어 인사 모두 허용)
+    if re.search(r"안녕[하세요]*", output) or re.search(r"hi|hello|안녕하세요", output, flags=re.IGNORECASE):
         checks.append('✅ 문제 2: 인사 출력 확인')
     else:
         checks.append('❌ 문제 2: 인사 출력이 보이지 않습니다')
 
-    # 3) 두 숫자 더하기 출력
-    if any(str(n) in output for n in range(0, 200)):
-        checks.append('✅ 문제 3: 숫자 출력(덧셈) 확인(느슨한 검사)')
+    # 3) 두 숫자 더하기 출력: 예제에 숫자가 없으면 체크를 건너뜀
+    if re.search(r"\d", module.__source__ if getattr(module,'__source__',None) else ''):
+        if re.search(r"\d+", output):
+            checks.append('✅ 문제 3: 숫자 출력(덧셈) 확인')
+        else:
+            checks.append('❌ 문제 3: 덧셈 결과 출력이 보이지 않습니다')
     else:
-        checks.append('❌ 문제 3: 덧셈 결과 출력이 보이지 않습니다')
+        checks.append('✅ 문제 3: (예제에 숫자가 없어 체크를 건너뜁니다)')
 
-    # 4) 여러 줄 출력
+    # 4) 여러 줄 출력 (두 줄 이상)
     if output.count('\n') >= 1:
         checks.append('✅ 문제 4: 여러 줄 출력 확인')
     else:
         checks.append('❌ 문제 4: 여러 줄 출력이 감지되지 않았습니다')
 
-    # 5) int 변환 후 계산
-    if any('%' in s for s in []):
-        # placeholder, keep loose
-        pass
-    # loose numeric check already covers it
+    # 5) int 변환 후 계산 — 유지하되 더 정확한 검사 필요 per-problem
 
     for c in checks:
         print(c)

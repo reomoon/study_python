@@ -37,14 +37,17 @@ def run(week_module):
             except Exception:
                 module = None
 
+    import re
     checks = []
-    if any('1' in line for line in output.splitlines()):
-        checks.append('✅ 문제 1: 1~5 출력 감지(느슨한 검사)')
+    # 1) 1~5 출력: 정확한 숫자 시퀀스가 있는지 확인(간단히 첫 줄에서)
+    if re.search(r"\b1\b.*\b2\b.*\b3\b", output, flags=re.DOTALL):
+        checks.append('✅ 문제 1: 1~5 출력 감지')
     else:
         checks.append('❌ 문제 1: 1~5 출력이 보이지 않습니다')
 
-    if any('sum' in line or '합' in line or any(d in output for d in ['15','10']) for line in output.splitlines()):
-        checks.append('✅ 문제 2: 리스트 합 출력(느슨한 검사)')
+    # 2) 리스트 합: 정확한 합 숫자(예: 15) 또는 'sum' 키워드
+    if re.search(r"\b15\b", output) or re.search(r"\bsum\b", output) or re.search(r"합", output):
+        checks.append('✅ 문제 2: 리스트 합 출력 확인')
     else:
         checks.append('❌ 문제 2: 리스트 합 출력이 보이지 않습니다')
 
@@ -57,7 +60,7 @@ def run(week_module):
         else:
             checks.append('❌ 문제 3: 카운트다운 출력이 보이지 않습니다')
 
-    if '[' in output and any('**' in l or 'square' in l.lower() for l in output.splitlines()):
+    if re.search(r"\[.*\]", output) and (re.search(r"\*\*", output) or re.search(r"square", output, flags=re.IGNORECASE)):
         checks.append('✅ 문제 4: 제곱 리스트 출력 감지')
     else:
         checks.append('❌ 문제 4: 제곱 리스트 출력이 보이지 않습니다')

@@ -37,23 +37,25 @@ def run(week_module):
             except Exception:
                 module = None
 
+    import re
     checks = []
-    if 'open' in (module.__source__ if module and getattr(module,'__source__',None) else ''):
+    src = module.__source__ if module and getattr(module,'__source__',None) else ''
+    if re.search(r"\bopen\s*\(|with\s+open\s*\(", src):
         checks.append('✅ 문제 1/2: 파일 열기/쓰기/읽기 사용 감지')
     else:
         checks.append('❌ 문제 1/2: 파일 입출력 코드가 보이지 않습니다')
 
-    if 'except' in (module.__source__ if module and getattr(module,'__source__',None) else ''):
+    if re.search(r"\bexcept\b", src):
         checks.append('✅ 문제 3: 예외 처리 코드 감지')
     else:
         checks.append('❌ 문제 3: 파일 예외 처리 코드가 보이지 않습니다')
 
-    if 'append' in (module.__source__ if module and getattr(module,'__source__',None) else '') or 'a+' in (module.__source__ if module and getattr(module,'__source__',None) else ''):
+    if re.search(r"\bappend\b|\b[aA]\+\b", src):
         checks.append('✅ 문제 5: append 모드 사용 감지')
     else:
         checks.append('❌ 문제 5: append 사용 예가 보이지 않습니다')
 
-    if 'read' in output or 'lines' in output or 'len' in output:
+    if re.search(r"\bread\b|\blines\b|\blen\b", output):
         checks.append('✅ 문제 4: 파일 내용 읽기 및 길이 출력 감지')
     else:
         checks.append('❌ 문제 4: 파일 읽기 출력이 보이지 않습니다')

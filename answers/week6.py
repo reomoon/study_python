@@ -37,31 +37,40 @@ def run(week_module):
             except Exception:
                 module = None
 
+    import inspect
     checks = []
-    # add
-    if module is not None and 'add' in module.__dict__:
+    # 1) add 함수가 실제로 callable인지 확인
+    if module is not None and callable(module.__dict__.get('add')):
         checks.append('✅ 문제 1: add 함수 정의 확인')
     else:
         checks.append('❌ 문제 1: add 함수가 정의되지 않았습니다')
 
-    if 'reverse' in (module.__dict__ if module else {}):
+    if module is not None and callable(module.__dict__.get('reverse')):
         checks.append('✅ 문제 2: reverse 함수 정의 확인')
     else:
         checks.append('❌ 문제 2: reverse 함수가 정의되지 않았습니다')
 
-    if 'import' in (module.__source__ if module and getattr(module,'__source__',None) else ''):
+    src = module.__source__ if module and getattr(module,'__source__',None) else ''
+    if 'import' in src:
         checks.append('✅ 문제 3: import 사용 예 감지')
     else:
         checks.append('❌ 문제 3: import 사용 예가 보이지 않습니다')
 
-    # 4) default arg
-    if 'def ' in (module.__source__ if module and getattr(module,'__source__',None) else '') and '=' in (module.__source__ if module and getattr(module,'__source__',None) else ''):
-        checks.append('✅ 문제 4: 기본값 인자 사용 감지(느슨한 검사)')
+    # 4) default arg — 좀 더 구체적으로 'def name(arg=...' 형태 검사
+    import re
+    if re.search(r"def\s+\w+\s*\([^)]*=", src):
+        checks.append('✅ 문제 4: 기본값 인자 사용 감지')
     else:
         checks.append('❌ 문제 4: 기본값 인자 사용 예가 보이지 않습니다')
 
-    # 5) docstring
-    if module is not None and any(getattr(module.__dict__.get(n),'__doc__',None) for n in ['add','reverse']):
+    # 5) docstring 존재 확인
+    docs_ok = False
+    for n in ['add','reverse']:
+        fn = module.__dict__.get(n)
+        if fn and getattr(fn,'__doc__',None):
+            docs_ok = True
+            break
+    if docs_ok:
         checks.append('✅ 문제 5: __doc__가 채워진 함수 확인')
     else:
         checks.append('❌ 문제 5: 함수 __doc__가 비어있습니다')

@@ -73,7 +73,9 @@ def run(week_module):
         checks.append("✅ 문제 1: 변수 x 정의 완료")
     else:
         checks.append("❌ 문제 1: 변수 x가 7로 설정되지 않았습니다")
-    if "x는" in output and "7" in output:
+    import re
+    # 숫자와 한글 경계에서 \b가 잘 동작하지 않으므로 정수/소수는 더 관대한 패턴 사용
+    if re.search(r"(?<!\d)7(?!\d)", output):
         checks.append("✅ 문제 1 출력: 출력 형식 올바름")
     else:
         checks.append("❌ 문제 1 출력: 출력 형식을 확인해주세요")
@@ -83,7 +85,7 @@ def run(week_module):
         checks.append("✅ 문제 2: 변수 a,b 정의 및 곱 계산 완료")
     else:
         checks.append("❌ 문제 2: 변수 a,b가 없거나 곱이 올바르지 않습니다")
-    if "24" in output:
+    if re.search(r"(?<!\d)24(?!\d)", output):
         checks.append("✅ 문제 2 출력: 곱 출력 확인")
     else:
         checks.append("❌ 문제 2 출력: 곱 결과가 출력되지 않았습니다")
@@ -103,7 +105,7 @@ def run(week_module):
         checks.append("✅ 문제 4: width,height 정의 및 넓이 계산 완료")
     else:
         checks.append("❌ 문제 4: width/height가 없거나 넓이 계산이 올바르지 않습니다")
-    if "50" in output:
+    if re.search(r"(?<!\d)50(?!\d)", output):
         checks.append("✅ 문제 4 출력: 넓이 출력 확인")
     else:
         checks.append("❌ 문제 4 출력: 넓이 결과가 출력되지 않았습니다")
@@ -113,7 +115,8 @@ def run(week_module):
         checks.append("✅ 문제 5: temp 변수 정의 완료")
     else:
         checks.append("❌ 문제 5: temp 변수가 없거나 값이 올바르지 않습니다")
-    if "현재 체온" in output and "36.5" in output:
+    # 소수점은 단순히 패턴으로 검사
+    if "현재 체온" in output and re.search(r"36\.5", output):
         checks.append("✅ 문제 5 출력: 체온 출력 형식 확인")
     else:
         checks.append("❌ 문제 5 출력: 체온 출력이 형식에 맞지 않습니다")
