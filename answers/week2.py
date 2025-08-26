@@ -94,7 +94,21 @@ def run(week_module):
             checks.append('❌ 문제 5: age 키가 info에 없습니다')
     else:
         checks.append('❌ 문제 5: info 딕셔너리를 정의해주세요')
-    if 'age' in output or 'city' in output:
+    # 출력 검사: 'age' 또는 'city' 단어 또는 info에 담긴 값(예: 25)이 출력에 보이면 통과
+    printed_ok = False
+    try:
+        if 'age' in output or 'city' in output:
+            printed_ok = True
+        elif module is not None and getattr(module, 'info', None):
+            info = getattr(module, 'info')
+            if isinstance(info, dict):
+                if 'age' in info and str(info.get('age')) in output:
+                    printed_ok = True
+                if 'city' in info and str(info.get('city')) in output:
+                    printed_ok = True
+    except Exception:
+        printed_ok = False
+    if printed_ok:
         checks.append('✅ 문제 5 출력: 나이 또는 도시 출력 확인')
     else:
         checks.append('❌ 문제 5 출력: info 관련 출력이 보이지 않습니다')

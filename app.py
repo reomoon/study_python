@@ -144,27 +144,39 @@ function onWeekChange(v) {
 // 코드에 input() 호출이 있으나 stdin이 비어있으면 브라우저에서
 // 순차적으로 prompt()로 입력값을 받아 채워줍니다.
 function beforeSubmit(){
-    // 코드 동기화
-    const code = (window.editor && window.editor.getValue) ? window.editor.getValue() : editor.getValue();
-    document.getElementById('code').value = code;
-    const stdinElem = document.getElementsByName('stdin')[0];
-    const stdinVal = (stdinElem && stdinElem.value) ? stdinElem.value.trim() : '';
+    // 안전하게 에디터 값 읽기
+    var code = '';
+    try{
+        if(window.editor && typeof window.editor.getValue === 'function'){
+            code = window.editor.getValue();
+        }else if(typeof editor !== 'undefined' && editor && typeof editor.getValue === 'function'){
+            code = editor.getValue();
+        }
+    }catch(e){
+        // 무시: 에디터 접근 중 예외가 나더라도 제출이 막히지 않도록 함
+        code = '';
+    }
+    var codeElem = document.getElementById('code');
+    if(codeElem) codeElem.value = code;
+    var stdinElem = document.getElementsByName('stdin')[0];
+    var stdinVal = (stdinElem && stdinElem.value) ? stdinElem.value.trim() : '';
 
     // 간단한 패턴으로 input( 호출 수를 센다
-    const re = /(^|[^A-Za-z0-9_])input\s*\(/g;
-    let count = 0;
-    while(re.exec(code) !== null) count++;
+    var re = /(^|[^A-Za-z0-9_])input\s*\(/g;
+    var count = 0;
+    var m;
+    while((m = re.exec(code)) !== null) count++;
 
     if(count > 0 && stdinVal === ''){
-        const inputs = [];
-        for(let i=0;i<count;i++){
-            const v = window.prompt('입력값을 입력하세요 (input() 호출 #' + (i+1) + ')\n취소하면 제출이 중단됩니다.');
+        var inputs = [];
+        for(var i=0;i<count;i++){
+            var v = window.prompt('입력값을 입력하세요 (input() 호출 #' + (i+1) + ')\n취소하면 제출이 중단됩니다.');
             if(v === null){
                 return false; // 제출 취소
             }
             inputs.push(v);
         }
-        stdinElem.value = inputs.join('\n');
+        if(stdinElem) stdinElem.value = inputs.join('\n');
     }
     return true;
 }

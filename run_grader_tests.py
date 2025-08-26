@@ -81,7 +81,7 @@ def run_one(week, example_path):
 
     student_out = ''
     exc = None
-    # 실행(학생 코드)
+    # 실행(학생 코드) with timeout
     try:
         buf = io.StringIO()
         # 자동 입력 감지: 소스에 input( 호출이 있으면 기본값을 주입
@@ -114,15 +114,27 @@ def run_one(week, example_path):
                 import builtins
                 builtins.input = self._orig
 
-        with redirect_stdout(buf):
+        # 실행을 별도 스레드에서 수행하고 join(timeout)으로 타임아웃을 적용
+        import threading
+        def _run_exec():
             try:
-                if stdin_lines:
-                    with RedirectInput(stdin_lines):
+                with redirect_stdout(buf):
+                    if stdin_lines:
+                        with RedirectInput(stdin_lines):
+                            exec(src, module.__dict__)
+                    else:
                         exec(src, module.__dict__)
-                else:
-                    exec(src, module.__dict__)
             except Exception:
-                exc = traceback.format_exc()
+                nonlocal_exc[0] = traceback.format_exc()
+
+        nonlocal_exc = [None]
+        t = threading.Thread(target=_run_exec, daemon=True)
+        t.start()
+        t.join(2.0)  # 2 second timeout
+        if t.is_alive():
+            exc = 'TimeoutError: student code exceeded 2 seconds'
+        elif nonlocal_exc[0]:
+            exc = nonlocal_exc[0]
         student_out = buf.getvalue()
     except Exception as e:
         exc = traceback.format_exc()
