@@ -152,7 +152,7 @@ function onWeekChange(v) {
 // 제출 전에 에디터의 코드를 hidden textarea에 넣고,
 // 코드에 input() 호출이 있으나 stdin이 비어있으면 브라우저에서
 // 순차적으로 prompt()로 입력값을 받아 채워줍니다.
-function beforeSubmit(){
+window.beforeSubmit = function(){
     // 안전하게 에디터 값 읽기
     var code = '';
     try{
@@ -188,7 +188,7 @@ function beforeSubmit(){
         if(stdinElem) stdinElem.value = inputs.join('\n');
     }
     return true;
-}
+};
 </script>
 {% if result %}
 <hr>
