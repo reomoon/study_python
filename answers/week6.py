@@ -58,7 +58,7 @@ def run(week_module):
 
     # 4) default arg — 좀 더 구체적으로 'def name(arg=...' 형태 검사
     import re
-    if re.search(r"def\s+\w+\s*\([^)]*=", src):
+    if re.search(r"def\s+\w+\s*\([^)]*=", src, re.IGNORECASE):
         checks.append('✅ 문제 4: 기본값 인자 사용 감지')
     else:
         checks.append('❌ 문제 4: 기본값 인자 사용 예가 보이지 않습니다')

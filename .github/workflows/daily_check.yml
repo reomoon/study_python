@@ -1,9 +1,11 @@
 name: 🐍 Daily Python Study Check
 
 on:
-  schedule:
-    # 매일 오후 6시 (KST 기준, UTC+9이므로 9시 UTC)
-    - cron: '0 9 * * *'
+  # push:
+  #   branches: ['study/**']  # study/ 로 시작하는 모든 브랜치
+  # pull_request:
+  #   branches: ['main']
+  workflow_dispatch:  # 수동 실행 가능
   push:
     branches: ['study/**']  # study/ 로 시작하는 모든 브랜치
   pull_request:

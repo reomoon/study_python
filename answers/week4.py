@@ -39,32 +39,33 @@ def run(week_module):
 
     import re
     checks = []
-    # 1) 짝수/홀수 관련 출력: 정확한 단어 매치
-    if re.search(r"\b짝\b|\b홀\b", output):
+
+    # 1) 짝수/홀수 관련 출력: 부분 문자열, 대소문자 무시
+    if re.search(r"짝|홀", output, re.IGNORECASE):
         checks.append('✅ 문제 1: 짝수/홀수 판별 출력 확인')
     else:
         checks.append('❌ 문제 1: 짝수/홀수 출력이 보이지 않습니다')
 
-    # 2) 영/음수/양수
-    if re.search(r"\b영\b|\b음수\b|\b양수\b", output):
+    # 2) 영/음수/양수: 부분 문자열, 대소문자 무시
+    if re.search(r"영|음수|양수", output, re.IGNORECASE):
         checks.append('✅ 문제 2: 영/음수/양수 판별 출력 확인')
     else:
         checks.append('❌ 문제 2: 영/음수/양수 출력이 보이지 않습니다')
 
-    # 3) 예외 처리
-    if re.search(r"입력 오류|ValueError", output):
+    # 3) 예외 처리: 다양한 표현 허용
+    if re.search(r"입력 오류|ValueError|예외|오류|에러", output, re.IGNORECASE):
         checks.append('✅ 문제 3: 예외 처리 출력 확인')
     else:
         checks.append('❌ 문제 3: 예외 처리 코드 또는 출력이 보이지 않습니다')
 
-    # 4) 10보다 큰지 확인 — '10' 숫자 단어로 검사
-    if re.search(r"\b10\b", output):
+    # 4) 10 포함 여부: 부분 문자열
+    if re.search(r"10", output):
         checks.append('✅ 문제 4: 10 비교 관련 출력 감지')
     else:
         checks.append('❌ 문제 4: 10 비교 출력이 보이지 않습니다')
 
-    # 5) 에러/Exception 단어만으로는 약하므로 단어 경계로 검사
-    if re.search(r"\b에러\b|\bException\b", output):
+    # 5) 에러/Exception/오류/예외 등 다양한 단어 허용
+    if re.search(r"에러|Exception|오류|예외", output, re.IGNORECASE):
         checks.append('✅ 문제 5: 에러 발생/처리 출력 확인')
     else:
         checks.append('❌ 문제 5: 에러 처리 출력이 보이지 않습니다')

@@ -46,7 +46,6 @@
 <body>
 <div class="container">
     <h1><span class="emoji"></span> Python 기초 스터디</h1>
-    <p class="subtitle">초보자도 쉽게! 함께 배우는 파이썬 프로그래밍</p>
     <div class="highlight">
         <h2><span class="emoji"></span> 스터디 목표</h2>
         <p>10주 동안 Python 기초부터 클래스까지 마스터하기!</p>
@@ -106,6 +105,9 @@ function resetCode() {
     var codeElem = document.getElementById('code');
     if(codeElem) codeElem.value = '';
 }
+// submitted_code를 JS에서 안전하게 문자열로 전달하기 위해 Jinja2 필터 사용
+// |default('') : 값이 없을 때 빈 문자열로 대체
+// |tojson : JS에서 쓸 수 있는 JSON 문자열로 변환
 var initialCode = {{ submitted_code|default('')|tojson }};
 require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
 require(['vs/editor/editor.main'], function() {
