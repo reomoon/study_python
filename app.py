@@ -143,8 +143,10 @@ def index():
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
-            # 실행 중 예외가 발생하면 즉시 사용자에게 보여주고 중단
-            result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
+            if isinstance(e, IndentationError):
+                result = f"❌ 제출 코드 실행 중 <b>들여쓰기 오류(IndentationError)</b>가 발생했습니다.<br>코드의 각 줄 앞에 불필요한 공백이나 탭이 있는지 확인하세요.<br><pre>{e}\n\n{tb}</pre>"
+            else:
+                result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
             return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
@@ -235,3 +237,7 @@ def example():
         return Response(f"# 예제 파일을 찾을 수 없습니다: {e}", mimetype='text/plain; charset=utf-8')
     
     
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5555))
+    app.run(port=port)
+

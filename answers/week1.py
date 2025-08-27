@@ -68,58 +68,119 @@ def run(week_module):
                 week1 = None
 
     checks = []
-    # 1
-    if week1 is not None and hasattr(week1, 'x') and week1.x == 7:
-        checks.append("✅ 문제 1: 변수 x 정의 완료")
-    else:
-        checks.append("❌ 문제 1: 변수 x가 7로 설정되지 않았습니다")
     import re
-    # 숫자와 한글 경계에서 \b가 잘 동작하지 않으므로 정수/소수는 더 관대한 패턴 사용
+    # 문제 1: x=7
+    found_7 = False
+    if week1 is not None:
+        for var in dir(week1):
+            if not var.startswith('__'):
+                val = getattr(week1, var)
+                if isinstance(val, (int, float)) and val == 7:
+                    found_7 = True
+    if found_7:
+        checks.append("✅ 문제 1: 7 값이 있는 변수 확인")
+    else:
+        checks.append("❌ 문제 1: 7 값이 있는 변수를 찾을 수 없음")
     if re.search(r"(?<!\d)7(?!\d)", output):
-        checks.append("✅ 문제 1 출력: 출력 형식 올바름")
+        checks.append("✅ 문제 1 출력: 7 출력 확인")
+    elif '7' in output:
+        checks.append("⚠️ 문제 1 출력: 7이 출력에 있으나 형식 불명확 (부분 점수)")
     else:
-        checks.append("❌ 문제 1 출력: 출력 형식을 확인해주세요")
+        checks.append("❌ 문제 1 출력: 7 출력이 없음")
 
-    # 2
-    if week1 is not None and hasattr(week1, 'a') and hasattr(week1, 'b') and (week1.a * week1.b == 3 * 8):
-        checks.append("✅ 문제 2: 변수 a,b 정의 및 곱 계산 완료")
+    # 문제 2: a=3, b=8, 곱=24
+    found_3 = False
+    found_8 = False
+    found_24 = False
+    if week1 is not None:
+        for var in dir(week1):
+            if not var.startswith('__'):
+                val = getattr(week1, var)
+                if isinstance(val, (int, float)):
+                    if val == 3:
+                        found_3 = True
+                    if val == 8:
+                        found_8 = True
+                    if val == 24:
+                        found_24 = True
+    if found_3 and found_8:
+        checks.append("✅ 문제 2: 3과 8 값이 있는 변수 확인")
+    elif found_3 or found_8:
+        checks.append("⚠️ 문제 2: 3 또는 8 값만 있음 (부분 점수)")
     else:
-        checks.append("❌ 문제 2: 변수 a,b가 없거나 곱이 올바르지 않습니다")
+        checks.append("❌ 문제 2: 3, 8 값이 있는 변수를 찾을 수 없음")
     if re.search(r"(?<!\d)24(?!\d)", output):
-        checks.append("✅ 문제 2 출력: 곱 출력 확인")
+        checks.append("✅ 문제 2 출력: 곱 24 출력 확인")
+    elif '24' in output:
+        checks.append("⚠️ 문제 2 출력: 24가 출력에 있으나 형식 불명확 (부분 점수)")
     else:
-        checks.append("❌ 문제 2 출력: 곱 결과가 출력되지 않았습니다")
+        checks.append("❌ 문제 2 출력: 곱 결과가 출력되지 않음")
 
-    # 3
-    if week1 is not None and hasattr(week1, 'name') and isinstance(getattr(week1, 'name'), str):
-        checks.append("✅ 문제 3: name 변수 정의 완료")
+    # 문제 3: name='홍길동', "내 이름은"
+    found_name = False
+    if week1 is not None:
+        for var in dir(week1):
+            if not var.startswith('__'):
+                val = getattr(week1, var)
+                if isinstance(val, str) and ('홍길동' in val or '길동' in val):
+                    found_name = True
+    if found_name:
+        checks.append("✅ 문제 3: 이름 변수에 홍길동 포함 확인")
     else:
-        checks.append("❌ 문제 3: name 변수가 정의되지 않았습니다")
+        checks.append("❌ 문제 3: 이름 변수에 홍길동이 없음")
     if "내 이름은" in output:
         checks.append("✅ 문제 3 출력: 이름 출력 형식 확인")
+    elif "이름" in output:
+        checks.append("⚠️ 문제 3 출력: 이름 관련 출력 있으나 형식 불명확 (부분 점수)")
     else:
-        checks.append("❌ 문제 3 출력: 이름 출력이 형식에 맞지 않습니다")
+        checks.append("❌ 문제 3 출력: 이름 출력 없음")
 
-    # 4
-    if week1 is not None and hasattr(week1, 'width') and hasattr(week1, 'height') and (getattr(week1, 'width') * getattr(week1, 'height') == 5 * 10):
-        checks.append("✅ 문제 4: width,height 정의 및 넓이 계산 완료")
+    # 문제 4: width=5, height=10, 넓이=50
+    found_5 = False
+    found_10 = False
+    found_50 = False
+    if week1 is not None:
+        for var in dir(week1):
+            if not var.startswith('__'):
+                val = getattr(week1, var)
+                if isinstance(val, (int, float)):
+                    if val == 5:
+                        found_5 = True
+                    if val == 10:
+                        found_10 = True
+                    if val == 50:
+                        found_50 = True
+    if found_5 and found_10:
+        checks.append("✅ 문제 4: 5와 10 값이 있는 변수 확인")
+    elif found_5 or found_10:
+        checks.append("⚠️ 문제 4: 5 또는 10 값만 있음 (부분 점수)")
     else:
-        checks.append("❌ 문제 4: width/height가 없거나 넓이 계산이 올바르지 않습니다")
+        checks.append("❌ 문제 4: 5, 10 값이 있는 변수를 찾을 수 없음")
     if re.search(r"(?<!\d)50(?!\d)", output):
-        checks.append("✅ 문제 4 출력: 넓이 출력 확인")
+        checks.append("✅ 문제 4 출력: 넓이 50 출력 확인")
+    elif '50' in output:
+        checks.append("⚠️ 문제 4 출력: 50이 출력에 있으나 형식 불명확 (부분 점수)")
     else:
-        checks.append("❌ 문제 4 출력: 넓이 결과가 출력되지 않았습니다")
+        checks.append("❌ 문제 4 출력: 넓이 결과가 출력되지 않음")
 
-    # 5
-    if week1 is not None and hasattr(week1, 'temp') and (getattr(week1, 'temp') == 36.5):
-        checks.append("✅ 문제 5: temp 변수 정의 완료")
+    # 문제 5: temp=36.5, "체온"
+    found_temp = False
+    if week1 is not None:
+        for var in dir(week1):
+            if not var.startswith('__'):
+                val = getattr(week1, var)
+                if isinstance(val, (int, float)) and abs(val - 36.5) < 0.01:
+                    found_temp = True
+    if found_temp:
+        checks.append("✅ 문제 5: 36.5 값이 있는 변수 확인")
     else:
-        checks.append("❌ 문제 5: temp 변수가 없거나 값이 올바르지 않습니다")
-    # 소수점은 단순히 패턴으로 검사
-    if "현재 체온" in output and re.search(r"36\.5", output):
+        checks.append("❌ 문제 5: 36.5 값이 있는 변수를 찾을 수 없음")
+    if "체온" in output and re.search(r"36\.5", output):
         checks.append("✅ 문제 5 출력: 체온 출력 형식 확인")
+    elif "체온" in output or "36.5" in output:
+        checks.append("⚠️ 문제 5 출력: 체온 관련 출력 있으나 형식 불명확 (부분 점수)")
     else:
-        checks.append("❌ 문제 5 출력: 체온 출력이 형식에 맞지 않습니다")
+        checks.append("❌ 문제 5 출력: 체온 출력 없음")
 
     for c in checks:
         print(c)

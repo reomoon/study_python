@@ -45,13 +45,12 @@
 </head>
 <body>
 <div class="container">
-    <h1><span class="emoji">🐍</span> Python 기초 스터디</h1>
+    <h1><span class="emoji"></span> Python 기초 스터디</h1>
     <p class="subtitle">초보자도 쉽게! 함께 배우는 파이썬 프로그래밍</p>
     <div class="highlight">
-        <h2><span class="emoji">🎯</span> 스터디 목표</h2>
+        <h2><span class="emoji"></span> 스터디 목표</h2>
         <p>10주 동안 Python 기초부터 클래스까지 마스터하기!</p>
-        <a href="https://github.com/reomoon/study_python" class="btn">GitHub 바로가기</a>
-        <a href="#guide" class="btn">참여방법 보기</a>
+        <a href="https://github.com/reomoon/study_python/issues" class="btn" target="_blank">GitHub 이슈 폴더 바로가기</a>
     </div>
     <div class="problem">{{ problem|safe }}</div>
     <form method="post" id="submitForm" onsubmit="return beforeSubmit();">
@@ -61,7 +60,7 @@
         </div>
         <div class="form-group">
             <label for="week">주차</label>
-            <select id="week" name="week" onchange="onWeekChange(this.value)">
+            <select id="week" name="week" onchange="onWeekChange(this.value)" style="height:30px;font-size:1.1em;">
                 {% for k, label in week_options %}
                     <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
                 {% endfor %}
@@ -80,7 +79,10 @@
             <textarea id="code" name="code" style="display:none">{{ submitted_code|default('') }}</textarea>
             <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:420px; width:100%; max-width:1000px; margin-bottom:10px; overflow-y:auto;"></div>
         </div>
-        <button type="submit">제출</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+        <button type="submit" style="width:100px;height:30px;font-size:1em;">제출</button>
+        <button type="button" style="width:100px;height:30px;font-size:1em;" onclick="resetCode()">초기화</button>
+    </div>
     </form>
     {% if result %}
     <div class="result">
@@ -98,7 +100,13 @@
 <!-- Monaco Editor (VSCode 기반 에디터) -->
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
 <script>
-var initialCode = "{{ submitted_code|escapejs|default('') }}";
+function resetCode() {
+    // 코드만 초기화, 주차 선택은 그대로 유지
+    if(window.editor && window.editor.setValue) window.editor.setValue('');
+    var codeElem = document.getElementById('code');
+    if(codeElem) codeElem.value = '';
+}
+var initialCode = {{ submitted_code|default('')|tojson }};
 require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
 require(['vs/editor/editor.main'], function() {
     window.editor = monaco.editor.create(document.getElementById('editor'), {
@@ -109,6 +117,11 @@ require(['vs/editor/editor.main'], function() {
         minimap: { enabled: false },
         fontFamily: 'Consolas, "Courier New", monospace',
         fontSize: 13
+    });
+    // 제출 후에도 답안 코드가 에디터에 남아 있도록 값 유지
+    window.editor.onDidChangeModelContent(function() {
+        var codeElem = document.getElementById('code');
+        if(codeElem) codeElem.value = window.editor.getValue();
     });
     try{
         var codeElem = document.getElementById('code');
@@ -164,21 +177,6 @@ window.beforeSubmit = function(){
     return true;
 };
 </script>
-{% if result %}
-<hr>
-<b>결과:</b><br>
-{% if student_output %}
-<pre>{{ student_output|e }}</pre>
-{% endif %}
-{% if checker_output %}
-<h4>채점기 출력</h4>
-<pre>{{ checker_output|e }}</pre>
-{% endif %}
-{% if submitted_code %}
-<h4>제출한 코드</h4>
-<pre>{{ submitted_code|e }}</pre>
-{% endif %}
-{{ result|safe }}
-{% endif %}
+
 </body>
 </html>

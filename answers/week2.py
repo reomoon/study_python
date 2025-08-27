@@ -55,15 +55,34 @@ def run(week_module):
     else:
         checks.append('❌ 문제 1 출력: 타입 출력이 보이지 않습니다')
 
-    # 2) a=15,b=4 and sum printed
-    if module is not None and hasattr(module, 'a') and hasattr(module, 'b') and (getattr(module,'a')==15 and getattr(module,'b')==4):
-        checks.append('✅ 문제 2: a,b 변수 설정 완료')
+    # 2) a=15, b=4, 덧셈 결과 19 출력 (유연하게 평가)
+    found_15 = False
+    found_4 = False
+    # 변수명에 관계없이 값이 15, 4인 int형 변수가 있으면 인정
+    if module is not None:
+        for var in dir(module):
+            if not var.startswith('__'):
+                val = getattr(module, var)
+                if isinstance(val, int):
+                    if val == 15:
+                        found_15 = True
+                    if val == 4:
+                        found_4 = True
+    if found_15 and found_4:
+        checks.append('✅ 문제 2: 15와 4 값이 있는 변수 확인')
+    elif found_15 or found_4:
+        checks.append('⚠️ 문제 2: 15 또는 4 값만 있음 (부분 점수)')
     else:
-        checks.append('❌ 문제 2: a,b 변수 설정을 확인해주세요')
+        checks.append('❌ 문제 2: 15, 4 값이 있는 변수를 찾을 수 없음')
+    # 덧셈 결과 19가 출력에 있으면 인정
     if re.search(r"(?<!\d)19(?!\d)", output):
         checks.append('✅ 문제 2 출력: 덧셈 결과 출력 확인')
     else:
-        checks.append('❌ 문제 2 출력: 덧셈 결과가 보이지 않습니다')
+        # 혹시 15+4가 아닌 다른 방식으로 19가 출력됐을 수도 있으니, 19가 출력에 있으면 부분 점수
+        if '19' in output:
+            checks.append('⚠️ 문제 2 출력: 19가 출력에 있으나 덧셈 결과인지 불명확 (부분 점수)')
+        else:
+            checks.append('❌ 문제 2 출력: 덧셈 결과가 보이지 않습니다')
 
     # 3) name 변수와 출력 형식
     if module is not None and hasattr(module, 'name') and isinstance(getattr(module,'name'), str):
