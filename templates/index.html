@@ -1,94 +1,11 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>Python 기초 스터디 자동 채점기</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/eclipse.min.css">
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; padding: 30px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 30px; }
-        h1,h2 { text-align: center; }
-        .problem { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .form-group { margin-bottom: 12px; }
-        label { font-weight: bold; display:block; margin-bottom:6px }
-        textarea#code { min-height: 260px; width:100%; font-family: monospace; }
-        .controls { display:flex; gap:8px; margin-bottom:8px }
-        .result { margin-top: 20px; background:#fafafa; padding:12px; border-radius:8px }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1><span class="emoji">🐍</span> Python 기초 스터디</h1>
-    <p class="subtitle">초보자도 쉽게! 함께 배우는 파이썬 프로그래밍</p>
-    <div class="highlight">
-        <h2><span class="emoji">🎯</span> 스터디 목표</h2>
-        <p>10주 동안 Python 기초부터 클래스까지 마스터하기!</p>
-        <a href="https://github.com/reomoon/study_python" class="btn">GitHub 바로가기</a>
-        <a href="#guide" class="btn">참여방법 보기</a>
-    </div>
-
-    <div class="problem">{{ problem|safe }}</div>
-
-    <form method="post" id="submitForm">
-        <div class="form-group">
-            <label for="username">이름</label>
-            <input id="username" name="username" required style="width:240px;padding:6px">
-        </div>
-
-        <div class="form-group">
-            <label for="week">주차</label>
-            <select id="week" name="week">
-                {% for k, label in week_options %}
-                <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="stdin">표준 입력 (각 input() 호출마다 한 줄)</label>
-            <textarea id="stdin" name="stdin" rows="3" style="width:100%" placeholder="예: Alice\n25"></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="code">답안 코드</label>
-            <div class="controls">
-                <button type="button" onclick="loadExample()">예제 불러오기</button>
-                <button type="button" onclick="copyCode()">코드 복사</button>
-            </div>
-            <textarea id="code" name="code">{{ submitted_code|default('') }}</textarea>
-        </div>
-
-        <button type="submit">제출</button>
-    </form>
-
-    {% if result %}
-    <div class="result">
-        <b>제출 출력</b>
-        <pre>{{ student_output|e }}</pre>
-        {% endif %}
-        {% if checker_output %}
-        <h4>채점기 출력</h4>
-        <pre>{{ checker_output|e }}</pre>
-        {% endif %}
-        {{ result|safe }}
-    </div>
-    {% endif %}
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-<script>
-// CodeMirror 초기화
-var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
-    mode: 'python', theme: 'eclipse', lineNumbers: true, indentUnit: 4, tabSize: 4
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐍 Python 기초 스터디</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/eclipse.min.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -118,67 +35,70 @@ var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
         .btn:hover { background: #2980b9; transform: translateY(-2px); }
         .emoji { font-size: 1.2em; }
         .highlight { background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; }
+        .problem { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 12px; }
+        label { font-weight: bold; display:block; margin-bottom:6px }
+        textarea#code { min-height: 260px; width:100%; font-family: monospace; }
+        .controls { display:flex; gap:8px; margin-bottom:8px }
+        .result { margin-top: 20px; background:#fafafa; padding:12px; border-radius:8px }
     </style>
-    </head>
+</head>
 <body>
-    <div class="container">
-        <h1><span class="emoji">🐍</span> Python 기초 스터디</h1>
-        <p class="subtitle">초보자도 쉽게! 함께 배우는 파이썬 프로그래밍</p>
-        <div class="highlight">
-            <h2><span class="emoji">🎯</span> 스터디 목표</h2>
-            <p>10주 동안 Python 기초부터 클래스까지 마스터하기!</p>
-            <a href="https://github.com/reomoon/study_python" class="btn">GitHub 바로가기</a>
-            <a href="#guide" class="btn">참여방법 보기</a>
-        </div>
-        <div class="problem">{{ problem|safe }}</div>
-        <form method="post" id="submitForm" onsubmit="return beforeSubmit();">
-            <div class="form-group">
-                <label for="username">이름</label>
-                <input id="username" name="username" required style="width:240px;padding:6px" />
-            </div>
-            <div class="form-group">
-                <label for="week">주차</label>
-                <select id="week" name="week" onchange="onWeekChange(this.value)">
-                    {% for k, label in week_options %}
-                        <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="stdin">표준 입력 (각 input() 호출마다 한 줄)</label>
-                <textarea id="stdin" name="stdin" rows="3" style="width:100%" placeholder="예: Alice\n25">{{ request.form.stdin|default('') }}</textarea>
-            </div>
-            <div class="form-group">
-                <label for="code">답안 코드</label>
-                <div class="controls">
-                    <button type="button" onclick="loadExample()">예제 불러오기</button>
-                    <button type="button" onclick="copyCode()">코드 복사</button>
-                </div>
-                <textarea id="code" name="code" style="display:none">{{ submitted_code|default('') }}</textarea>
-                <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:420px; width:100%; max-width:1000px; margin-bottom:10px; overflow-y:auto;"></div>
-            </div>
-            <button type="submit">제출</button>
-        </form>
-        {% if result %}
-        <div class="result">
-            <b>제출 출력</b>
-            <pre>{{ student_output|e }}</pre>
-            {% if checker_output %}
-            <h4>채점기 출력</h4>
-            <pre>{{ checker_output|e }}</pre>
-            {% endif %}
-            {{ result|safe }}
-        </div>
-        {% endif %}
+<div class="container">
+    <h1><span class="emoji">🐍</span> Python 기초 스터디</h1>
+    <p class="subtitle">초보자도 쉽게! 함께 배우는 파이썬 프로그래밍</p>
+    <div class="highlight">
+        <h2><span class="emoji">🎯</span> 스터디 목표</h2>
+        <p>10주 동안 Python 기초부터 클래스까지 마스터하기!</p>
+        <a href="https://github.com/reomoon/study_python" class="btn">GitHub 바로가기</a>
+        <a href="#guide" class="btn">참여방법 보기</a>
     </div>
+    <div class="problem">{{ problem|safe }}</div>
+    <form method="post" id="submitForm" onsubmit="return beforeSubmit();">
+        <div class="form-group">
+            <label for="username">이름</label>
+            <input id="username" name="username" required style="width:240px;padding:6px" />
+        </div>
+        <div class="form-group">
+            <label for="week">주차</label>
+            <select id="week" name="week" onchange="onWeekChange(this.value)">
+                {% for k, label in week_options %}
+                    <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="stdin">표준 입력 (각 input() 호출마다 한 줄)</label>
+            <textarea id="stdin" name="stdin" rows="3" style="width:100%" placeholder="예: Alice\n25">{{ request.form.stdin|default('') }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="code">답안 코드</label>
+            <div class="controls">
+                <button type="button" onclick="loadExample()">예제 불러오기</button>
+                <button type="button" onclick="copyCode()">코드 복사</button>
+            </div>
+            <textarea id="code" name="code" style="display:none">{{ submitted_code|default('') }}</textarea>
+            <div id="editor" style="border:1px solid #ccc; border-radius:5px; height:420px; width:100%; max-width:1000px; margin-bottom:10px; overflow-y:auto;"></div>
+        </div>
+        <button type="submit">제출</button>
+    </form>
+    {% if result %}
+    <div class="result">
+        <b>제출 출력</b>
+        <pre>{{ student_output|e }}</pre>
+        {% if checker_output %}
+        <h4>채점기 출력</h4>
+        <pre>{{ checker_output|e }}</pre>
+        {% endif %}
+        {{ result|safe }}
+    </div>
+    {% endif %}
+</div>
+
 <!-- Monaco Editor (VSCode 기반 에디터) -->
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
 <script>
-// 서버에서 전달된 제출 코드를 JS로 주입하여 제출 후에도 에디터가 유지되도록 함
-var initialCode = "";
-try {
-    initialCode = {{ submitted_code|tojson | default('""') }};
-} catch(e) { initialCode = ""; }
+var initialCode = "{{ submitted_code|escapejs|default('') }}";
 require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
 require(['vs/editor/editor.main'], function() {
     window.editor = monaco.editor.create(document.getElementById('editor'), {
@@ -195,13 +115,11 @@ require(['vs/editor/editor.main'], function() {
         if(codeElem) codeElem.value = initialCode || '';
     }catch(e){}
 });
-
 function copyCode(){
     const code = window.editor && window.editor.getValue ? window.editor.getValue() : '';
     navigator.clipboard && navigator.clipboard.writeText(code);
     alert('코드가 클립보드에 복사되었습니다.');
 }
-
 function loadExample(){
     const week = document.getElementsByName('week')[0].value;
     fetch('/example?week=' + encodeURIComponent(week)).then(r=>{
@@ -231,11 +149,9 @@ window.beforeSubmit = function(){
     if(codeElem) codeElem.value = code;
     var stdinElem = document.getElementsByName('stdin')[0];
     var stdinVal = (stdinElem && stdinElem.value) ? stdinElem.value.trim() : '';
-
     var re = /(^|[^A-Za-z0-9_])input\s*\(/g;
     var count = 0; var m;
     while((m = re.exec(code)) !== null) count++;
-
     if(count > 0 && stdinVal === ''){
         var inputs = [];
         for(var i=0;i<count;i++){
