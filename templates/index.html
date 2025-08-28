@@ -60,7 +60,7 @@
             <label for="week">챕터</label>
             <select id="week" name="week" onchange="onWeekChange(this.value)" style="height:30px;font-size:1.1em;">
                 {% for k, label in week_options %}
-                    <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>{{ k }}주차 - {{ label }}</option>
+                    <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>챕터{{ k }} - {{ label }}</option>
                 {% endfor %}
             </select>
         </div>
