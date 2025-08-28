@@ -57,10 +57,10 @@
             <input id="username" name="username" required style="width:240px;padding:6px" />
         </div>
         <div class="form-group">
-            <label for="week">챕터</label>
+            <label for="week">Chapter</label>
             <select id="week" name="week" onchange="onWeekChange(this.value)" style="height:30px;font-size:1.1em;">
                 {% for k, label in week_options %}
-                    <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>챕터{{ k }} - {{ label }}</option>
+                    <option value="{{ k }}" {% if selected_week == k %}selected{% endif %}>Chapter{{ k }} - {{ label }}</option>
                 {% endfor %}
             </select>
         </div>
