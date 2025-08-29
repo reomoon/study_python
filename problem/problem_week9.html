@@ -1,11 +1,11 @@
 <h3>9주차 - 파일 입출력</h3>
 <ol>
-  <li>examples_week9.txt 파일이 있다고 가정해서 진행</li>
-  <li>텍스트 파일을 생성하고 몇 줄의 텍스트를 저장하세요.</li>
-  <li>저장한 파일을 열어 내용을 읽고 출력하세요.</li>
-  <li>파일이 없을 때 발생하는 예외를 처리하세요 (try/except).</li>
-  <li>파일의 각 줄을 읽어 리스트에 저장한 뒤 길이를 출력하세요.</li>
-  <li>파일에 덧붙이기(append) 모드로 한 줄을 추가하세요.</li>
+  <li>1) <code>fn = 'examples_week9.txt'</code>처럼 파일명을 변수로 선언하세요.<br><small>실제 파일이 없어도 변수만 있으면 됩니다.</small></li>
+  <li>1) 텍스트 파일을 생성하고, <code>write()</code>로 여러 줄의 텍스트를 저장하는 코드를 작성하세요.<br><small>예: 'line1\nline2\n' 저장</small></li>
+  <li>1) 저장한 파일을 <code>open()</code>으로 열고, <code>read()</code> 또는 <code>readlines()</code>로 내용을 읽어 출력하세요.<br><small>예: 파일 내용 전체 또는 각 줄 출력</small></li>
+  <li>1) 파일이 없을 때 <code>try/except</code>로 예외를 처리하는 코드를 작성하세요.<br><small>예: FileNotFoundError 발생 시 "파일이 없습니다." 출력</small></li>
+  <li>1) 파일의 각 줄을 <code>readlines()</code>로 리스트에 저장하고, 리스트의 길이를 출력하세요.<br><small>예: ['line1', 'line2'] → 2 출력</small></li>
+  <li>1) 파일을 <code>'a'</code> 모드로 열어 한 줄을 덧붙이는 코드를 작성하세요.<br><small>예: 'line3' 추가</small></li>
 </ol>
 <div>
 <b>힌트:</b>

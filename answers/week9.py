@@ -50,10 +50,11 @@ def run(week_module):
     else:
         checks.append('❌ 문제 3: 파일 예외 처리 코드가 보이지 않습니다')
 
-    if re.search(r"\bappend\b|\b[aA]\+\b", src):
-        checks.append('✅ 문제 5: append 모드 사용 감지')
+    # 파일 읽기/길이 출력 코드 감지 (read/readlines/len 등)
+    if re.search(r"read\b|readlines\b|len\b", src):
+        checks.append('✅ 문제 4: 파일 읽기/길이 출력 코드 감지')
     else:
-        checks.append('❌ 문제 5: append 사용 예가 보이지 않습니다')
+        checks.append('❌ 문제 4: 파일 읽기/길이 출력 코드가 보이지 않습니다')
 
     for c in checks:
         print(c)
