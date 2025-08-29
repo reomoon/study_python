@@ -1,3 +1,41 @@
+import io, contextlib, importlib.util, re
+
+def grade_week4(module_path):
+    spec = importlib.util.spec_from_file_location('week4', module_path)
+    mod = importlib.util.module_from_spec(spec)
+    f = io.StringIO()
+    with contextlib.redirect_stdout(f):
+        spec.loader.exec_module(mod)
+    output = f.getvalue()
+    checks = []
+    # 1. 짝수/홀수 판별
+    if re.search(r"짝수|홀수", output):
+        checks.append('✅ 문제 1: 짝수/홀수 판별 출력')
+    else:
+        checks.append('❌ 문제 1: 짝수/홀수 판별 없음')
+    # 2. 영/음수/양수 판별
+    if re.search(r"영", output) and re.search(r"음수", output) and re.search(r"양수", output):
+        checks.append('✅ 문제 2: 영/음수/양수 모두 출력')
+    else:
+        checks.append('❌ 문제 2: 영/음수/양수 출력 누락')
+    # 3. 입력 오류 예외처리
+    if re.search(r"입력 오류", output):
+        checks.append('✅ 문제 3: 입력 오류 예외처리')
+    else:
+        checks.append('❌ 문제 3: 입력 오류 예외처리 없음')
+    # 4. 10보다 큰지 확인
+    if re.search(r"10보다 큽니다|10보다 작습니다|10 입니다", output):
+        checks.append('✅ 문제 4: 10 비교 출력')
+    else:
+        checks.append('❌ 문제 4: 10 비교 출력 없음')
+    # 5. 강제 에러 및 예외처리
+    if re.search(r"에러 잡음", output):
+        checks.append('✅ 문제 5: 강제 에러 예외처리')
+    else:
+        checks.append('❌ 문제 5: 강제 에러 예외처리 없음')
+    for c in checks:
+        print(c)
+    return sum(c.startswith('✅') for c in checks)
 WEEK = 4
 
 def run(week_module):
