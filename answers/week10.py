@@ -76,6 +76,28 @@ def run(week_module):
     for c in checks:
         print(c)
 
+    # Classroom 클래스 채점
+    try:
+        cls = week_module.__dict__.get('Classroom')
+        Student = week_module.__dict__.get('Student')
+        if cls and Student:
+            c = cls()
+            c.add_student(Student("철수", 17, "서울고"))
+            c.add_student(Student("영희", 16, "서울여고"))
+            import io, contextlib
+            f = io.StringIO()
+            with contextlib.redirect_stdout(f):
+                c.show_students()
+            out = f.getvalue()
+            if "철수" in out and "영희" in out:
+                print("✅ Classroom 클래스: 학생 추가/출력 동작 확인")
+            else:
+                print("❌ Classroom 클래스: 학생 출력 결과가 올바르지 않습니다")
+        else:
+            print("❌ Classroom/Student 클래스가 정의되지 않았습니다")
+    except Exception as e:
+        print(f"❌ Classroom 클래스 채점 오류: {e}")
+
     # comment heuristic
     try:
         if module is not None and getattr(module, '__source__', None):

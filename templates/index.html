@@ -69,9 +69,9 @@
             <textarea id="stdin" name="stdin" rows="2" style="width:100%" placeholder="예: Alice\n25">{{ request.form.stdin|default('') }}</textarea>
         </div>
         <div class="form-group">
-            <label for="code">답안 코드</label>
+            <label for="code">코드</label>
             <div class="controls">
-                <button type="button" onclick="loadExample()">예제 불러오기</button>
+                <button type="button" onclick="loadExample()">답안 불러오기</button>
                 <button type="button" onclick="copyCode()">코드 복사</button>
             </div>
             <textarea id="code" name="code" style="display:none">{{ submitted_code|default('') }}</textarea>

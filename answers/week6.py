@@ -3,6 +3,7 @@ WEEK = 6
 def run(week_module):
     import io, contextlib, importlib.util
 
+    checks = []
     module = week_module
     output = ''
     if module is not None and getattr(module, '__source__', None):
@@ -36,9 +37,7 @@ def run(week_module):
                 module = mod
             except Exception:
                 module = None
-
-    import inspect
-    checks = []
+    # ...existing code...
     # 1) add 함수가 실제로 callable인지 확인
     if module is not None and callable(module.__dict__.get('add')):
         checks.append('✅ 문제 1: add 함수 정의 확인')
@@ -49,12 +48,6 @@ def run(week_module):
         checks.append('✅ 문제 2: reverse 함수 정의 확인')
     else:
         checks.append('❌ 문제 2: reverse 함수가 정의되지 않았습니다')
-
-    src = module.__source__ if module and getattr(module,'__source__',None) else ''
-    if 'import' in src:
-        checks.append('✅ 문제 3: import 사용 예 감지')
-    else:
-        checks.append('❌ 문제 3: import 사용 예가 보이지 않습니다')
 
     # 4) default arg — 좀 더 구체적으로 'def name(arg=...' 형태 검사
     import re

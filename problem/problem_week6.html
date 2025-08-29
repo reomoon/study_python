@@ -2,14 +2,11 @@
 <ol>
   <li>두 수를 더하는 함수 <code>add(a,b)</code>를 작성하고 결과를 출력하세요.</li>
   <li>문자열을 뒤집는 함수 <code>reverse(s)</code>를 작성하세요.</li>
-  <li>아래 내용 참고하여 print_gugudan을 import 후 구구단 3단을 입력하세요.<br>
-    <code>def print_gugudan(dan):<br>
-    for i in range(1, 10):<br>
-        print(f"{dan} x {i} = {dan * i}")</code><br>
-    그리고 <b>다른 파일에서</b> <code>from gugudan import print_gugudan</code>으로 함수를 불러와 <code>print_gugudan(3)</code>을 실행해 3단을 출력하세요.
-  </li>
   <li>기본값 인자를 사용하는 함수를 작성하세요.</li>
   <li>함수 내부에서 문서를 작성하여 <code>__doc__</code>가 채워지도록 해보세요.</li>
+  <li>리스트에서 최댓값을 반환하는 함수 <code>find_max(lst)</code>를 작성하세요.</li>
+  <li>입력된 정수가 소수(prime)인지 판별하는 함수 <code>is_prime(n)</code>을 작성하세요.</li>
+  <li>리스트에서 특정 값의 개수를 세는 함수 <code>count_value(lst, value)</code>를 작성하세요.</li>
 </ol>
   <div>
     <b>힌트:</b>
@@ -19,6 +16,9 @@
       <li><code>import</code>로 모듈을 불러올 수 있습니다.</li>
       <li><code>*args</code>, <code>**kwargs</code>로 가변 인자 사용.</li>
       <li>함수에 <code>docstring</code>을 달면 설명이 추가됩니다.</li>
+      <li>최댓값은 반복문이나 <code>max()</code> 함수를 활용할 수 있습니다.</li>
+      <li>소수 판별은 2부터 n-1까지 나누어 떨어지는지 확인하면 됩니다.</li>
+      <li>리스트에서 특정 값의 개수는 <code>count()</code> 메서드나 반복문으로 셀 수 있습니다.</li>
     </ul>
   </div>
 

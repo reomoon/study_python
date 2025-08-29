@@ -128,14 +128,6 @@ def run(week_module):
         checks.append('✅ 문제 5: 구구단 전체 출력 확인')
     else:
         checks.append('❌ 문제 5: 구구단 출력 일부 누락')
-    # 6. break/continue 사용
-    code = module.__source__ if module and getattr(module,'__source__',None) else ''
-    if 'break' in code and 'continue' in code:
-        checks.append('✅ 문제 6: break/continue 모두 사용')
-    elif 'break' in code or 'continue' in code:
-        checks.append('✅ 문제 6: break 또는 continue 사용')
-    else:
-        checks.append('❌ 문제 6: break/continue 사용 없음')
     for c in checks:
         print(c)
     return sum(c.startswith('✅') for c in checks)

@@ -9,6 +9,9 @@ import sys
 examples_path = os.path.join(os.path.dirname(__file__), 'examples')
 if examples_path not in sys.path:
     sys.path.append(examples_path)
+# print("examples 폴더 존재 여부:", os.path.exists(os.path.join(examples_path, 'gugudan.py')))
+# print("examples 경로:", examples_path)
+# print("sys.path:", sys.path)
 
 def check_comments(filename):
     """주석 품질을 검사하는 함수"""

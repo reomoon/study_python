@@ -10,6 +10,8 @@ def run(week_module):
     if module is not None and getattr(module, '__source__', None):
         src = module.__source__
         f = io.StringIO()
+        # input()이 호출되면 '테스트값' 반환
+        module.__dict__['input'] = lambda prompt='': '테스트값'
         with contextlib.redirect_stdout(f):
             try:
                 exec(src, module.__dict__)
@@ -71,8 +73,8 @@ def run(week_module):
 
     # 5) int 변환 후 계산 — 유지하되 더 정확한 검사 필요 per-problem
 
-    for c in checks:
-        print(c)
+    # 채점 결과를 리스트로 반환
+    result_lines = list(checks)
 
     # basic comment heuristic
     try:
@@ -95,4 +97,5 @@ def run(week_module):
             comment_score = 1
 
     total = len([c for c in checks if c.startswith('✅')]) + comment_score
-    return total
+    # 문제별 결과와 총점 모두 반환
+    return {'results': result_lines, 'score': total}

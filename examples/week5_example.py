@@ -5,16 +5,18 @@ for i in range(1,6):
 numbers = [1,2,3,4]
 print(sum(numbers))
 
-# while countdown
+# 3. while문 카운트다운
 n = 3
 while n >= 0:
     print(n)
     n -= 1
 
-squares = [i*i for i in range(5)]
+# 4. 리스트 컴프리헨션
+squares = [x*x for x in range(1, 6)]
 print(squares)
 
-for x in [0,1,2,3]:
-    if x == 2:
-        continue
-    print(x)
+# 5. for문 구구단
+for i in range(2, 10):
+    for j in range(1, 10):
+        print(f"{i} x {j} = {i*j}")
+
