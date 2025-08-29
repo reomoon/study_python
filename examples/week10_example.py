@@ -30,8 +30,8 @@ class Classroom:
 
 # 예시 사용
 c = Classroom()
-c.add_student(Student("철수", 17, "서울고"))
-c.add_student(Student("영희", 16, "서울여고"))
+c.add_student(Student("은우", 17, "서울고"))
+c.add_student(Student("원영", 16, "서울여고"))
 c.show_students()
 
 p = Person('홍길동', 30)
