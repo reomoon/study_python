@@ -6,7 +6,8 @@ import io
 import contextlib
 import os
 import sys
-sys.path.append('examples')
+if 'examples' not in sys.path:
+    sys.path.append('examples')
 
 def check_comments(filename):
     """주석 품질을 검사하는 함수"""
