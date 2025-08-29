@@ -3,8 +3,19 @@
   <li>for 문을 사용해 1부터 5까지 출력하세요.</li>
   <li>리스트의 각 요소를 반복해 합을 계산하고 출력하세요.</li>
   <li>while문을 사용해 간단한 카운트다운을 출력하세요.</li>
-  <li>리스트 컴프리헨션으로 제곱 리스트를 만들어 출력하세요.</li>
+  <li>리스트 컴프리헨션(한 줄로 리스트 만들기)을 사용해서, 1부터 5까지 각 숫자의 제곱을 담은 리스트를 만들어 출력하세요.<br>
+  예시: <code>[x*x for x in range(1, 6)]</code> 결과는 <code>[1, 4, 9, 16, 25]</code> 입니다.</li>
+  <li>for문을 사용해 2단부터 9단까지 구구단을 출력하세요.<br>
+  예시: <code>for i in range(2, 10):<br>&nbsp;&nbsp;for j in range(1, 10):<br>&nbsp;&nbsp;&nbsp;&nbsp;print(f"{i} x {j} = {i*j}")</code></li>
   <li>반복문에서 break나 continue를 사용한 예를 작성하세요.</li>
 </ol>
-
-작성 파일명 예시: <code>week5_loop.py</code>
+<div style="background:#f9f9e3;border-left:4px solid #f7c948;padding:12px;margin:16px 0;border-radius:8px;">
+<b>힌트:</b><br>
+- <code>for</code>, <code>while</code>로 반복문을 만들 수 있습니다.<br>
+- <code>range()</code>로 숫자 반복, <code>enumerate()</code>로 인덱스와 값 동시 사용.<br>
+- <code>break</code>, <code>continue</code>로 반복 제어.<br>
+- 리스트 컴프리헨션은 <code>[x*x for x in list]</code>처럼 사용합니다.<br>
+- <code>sum()</code>으로 리스트의 합을 구할 수 있습니다.<br>
+- 구구단은 <b>중첩 for문</b>으로 만들 수 있습니다.<br>
+- <code>f"{i} x {j} = {i*j}"</code>처럼 <b>f-string</b>을 사용하면 변수 값을 문자열에 쉽게 넣을 수 있습니다.<br>
+</div>

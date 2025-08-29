@@ -66,7 +66,7 @@
         </div>
         <div class="form-group">
             <label for="stdin">input() 호출마다 한 줄을 추가 또는 제출을 클릭하여 입력하세요.</label>
-            <textarea id="stdin" name="stdin" rows="3" style="width:100%" placeholder="예: Alice\n25">{{ request.form.stdin|default('') }}</textarea>
+            <textarea id="stdin" name="stdin" rows="1" style="width:100%" placeholder="예: Alice\n25">{{ request.form.stdin|default('') }}</textarea>
         </div>
         <div class="form-group">
             <label for="code">답안 코드</label>
