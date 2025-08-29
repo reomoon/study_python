@@ -118,36 +118,45 @@ def index():
             PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
         # 제출 코드를 파일로 저장 (Vercel은 읽기 전용 파일 시스템이므로 파일 쓰기 금지)
         # 대신 메모리 모듈을 생성해 `week{N}_variable` 이름으로 sys.modules에 주입합니다.
-        import types
-        module_name = f'week{week}_variable'
-        module = types.ModuleType(module_name)
-        # 학생 코드의 실행 출력을 캡처해서 결과에 보여주기 위해 stdout을 리디렉트합니다.
-        student_output = ''
-        try:
-            import contextlib
-            buf_exec = io.StringIO()
-            stdin_text = request.form.get('stdin', '')
-            # Provide the supplied stdin to input() calls using RedirectInput
+        if week == '9':
+            # week9: 파일 입출력 문제는 학생 코드 실행 없이 static code analysis만 수행
             try:
-                with contextlib.redirect_stdout(buf_exec), RedirectInput(stdin_text):
-                    exec(code, module.__dict__)
-            except EOFError as ee:
-                # Provide a clearer message for missing input
-                student_output = buf_exec.getvalue()
-                result = f"❌ 제출 코드 실행 중 에러: 입력이 필요합니다 (EOF).\n입력값이 필요한 경우 제출 폼의 '표준 입력' 칸에 값을 넣어주세요.\n\n에러: {ee}"
+                import answers.week9 as week9_checker
+                checker_output = week9_checker.check_code(code)
+                student_output = '(실행하지 않음)'
+                result = f"<b>자동 채점 결과:</b><br>✅ 정상 분석!"
+            except Exception as e:
+                import traceback
+                tb = traceback.format_exc()
+                result = f"❌ 코드 분석 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
                 return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
-            student_output = buf_exec.getvalue()
-            # 제출 원본을 모듈에 보관하면 채점기가 메모리 모듈의 출력/주석을 검사할 수 있습니다.
-            module.__source__ = code
-            sys.modules[module_name] = module
-        except Exception as e:
-            import traceback
-            tb = traceback.format_exc()
-            if isinstance(e, IndentationError):
-                result = f"❌ 제출 코드 실행 중 <b>들여쓰기 오류(IndentationError)</b>가 발생했습니다.<br>코드의 각 줄 앞에 불필요한 공백이나 탭이 있는지 확인하세요.<br><pre>{e}\n\n{tb}</pre>"
-            else:
-                result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
-            return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
+        else:
+            import types
+            module_name = f'week{week}_variable'
+            module = types.ModuleType(module_name)
+            student_output = ''
+            try:
+                import contextlib
+                buf_exec = io.StringIO()
+                stdin_text = request.form.get('stdin', '')
+                try:
+                    with contextlib.redirect_stdout(buf_exec), RedirectInput(stdin_text):
+                        exec(code, module.__dict__)
+                except EOFError as ee:
+                    student_output = buf_exec.getvalue()
+                    result = f"❌ 제출 코드 실행 중 에러: 입력이 필요합니다 (EOF).\n입력값이 필요한 경우 제출 폼의 '표준 입력' 칸에 값을 넣어주세요.\n\n에러: {ee}"
+                    return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
+                student_output = buf_exec.getvalue()
+                module.__source__ = code
+                sys.modules[module_name] = module
+            except Exception as e:
+                import traceback
+                tb = traceback.format_exc()
+                if isinstance(e, IndentationError):
+                    result = f"❌ 제출 코드 실행 중 <b>들여쓰기 오류(IndentationError)</b>가 발생했습니다.<br>코드의 각 줄 앞에 불필요한 공백이나 탭이 있는지 확인하세요.<br><pre>{e}\n\n{tb}</pre>"
+                else:
+                    result = f"❌ 제출 코드 실행 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
+                return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 
         # test_checker.py 실행 (서버리스 환경 친화적 방식으로 변경)
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
