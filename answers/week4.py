@@ -96,11 +96,11 @@ def run(week_module):
     else:
         checks.append('❌ 문제 3: 예외 처리 코드 또는 출력이 보이지 않습니다')
 
-    # 4) 10 포함 여부: 부분 문자열
-    if re.search(r"10", output):
-        checks.append('✅ 문제 4: 10 비교 관련 출력 감지')
+    # 4) 10 비교: '10보다 큽니다', '10보다 작습니다', '10 입니다' 중 하나라도 출력되는지
+    if re.search(r"10보다 큽니다|10보다 작습니다|10 입니다", output):
+        checks.append('✅ 문제 4: 10 비교 출력 확인')
     else:
-        checks.append('❌ 문제 4: 10 비교 출력이 보이지 않습니다')
+        checks.append('❌ 문제 4: 10 비교 출력 없음')
 
     # 5) 에러/Exception/오류/예외 등 다양한 단어 허용
     if re.search(r"에러|Exception|오류|예외", output, re.IGNORECASE):

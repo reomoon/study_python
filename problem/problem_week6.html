@@ -2,7 +2,12 @@
 <ol>
   <li>두 수를 더하는 함수 <code>add(a,b)</code>를 작성하고 결과를 출력하세요.</li>
   <li>문자열을 뒤집는 함수 <code>reverse(s)</code>를 작성하세요.</li>
-  <li>모듈을 사용해 다른 파일의 함수를 호출하는 예를 보여주세요 (간단한 import 사용).</li>
+  <li>gugudan.py 파일에 아래 함수를 작성하세요:<br>
+    <code>def print_gugudan(dan):<br>
+    for i in range(1, 10):<br>
+        print(f"{dan} x {i} = {dan * i}")</code><br>
+    그리고 <b>다른 파일에서</b> <code>from gugudan import print_gugudan</code>으로 함수를 불러와 <code>print_gugudan(3)</code>을 실행해 3단을 출력하세요.
+  </li>
   <li>기본값 인자를 사용하는 함수를 작성하세요.</li>
   <li>함수 내부에서 문서를 작성하여 <code>__doc__</code>가 채워지도록 해보세요.</li>
 </ol>

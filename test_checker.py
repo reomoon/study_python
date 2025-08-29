@@ -155,11 +155,26 @@ def run_week(week):
     mem_name = f'week{w}_variable'
     week_module = sys.modules.get(mem_name)
     # 각 answer 모듈은 run(week_module) 함수를 제공해야 함
-    try:
-        return mod.run(week_module)
-    except Exception as e:
-        print(f"❌ {w}주차 검사 실행 중 오류: {e}")
+    import subprocess
+    import threading
+    import time
+    result = {'score': 0, 'error': None}
+    def run_with_timeout():
+        try:
+            result['score'] = mod.run(week_module)
+        except Exception as e:
+            result['error'] = str(e)
+
+    t = threading.Thread(target=run_with_timeout)
+    t.start()
+    t.join(timeout=2)  # 2초 제한
+    if t.is_alive():
+        print(f"⏰ 실행이 너무 오래 걸립니다. 무한루프나 입력 대기 상태일 수 있습니다.")
         return 0
+    if result['error']:
+        print(f"❌ {w}주차 검사 실행 중 오류: {result['error']}")
+        return 0
+    return result['score']
 
 def main():
     """메인 테스트 함수"""
