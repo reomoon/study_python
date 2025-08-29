@@ -2,10 +2,11 @@
 # 이 파일은 여러분의 답안을 자동으로 체크합니다.
 
 import importlib.util
-import sys
 import io
 import contextlib
 import os
+import sys
+sys.path.append('examples')
 
 def check_comments(filename):
     """주석 품질을 검사하는 함수"""
