@@ -97,7 +97,7 @@ def run(week_module):
         checks.append('❌ 문제 3: 예외 처리 코드 또는 출력이 보이지 않습니다')
 
     # 4) 10 비교: '10보다 큽니다', '10보다 작습니다', '10 입니다' 중 하나라도 출력되는지
-    if re.search(r"num > 10|num < 10", output):
+    if re.search(r"if\\s+sum\\s*>\\s*10", src) or re.search(r"elif\\s+sum\\s*<\\s*10", src):
         checks.append('✅ 문제 4: 10 비교 출력 확인')
     else:
         checks.append('❌ 문제 4: 10 비교 출력 없음')

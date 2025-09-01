@@ -1,24 +1,48 @@
 def static_analysis(src):
     import re
     checks = []
-    # 파일명 변수 선언만 있어도 인정
-    if re.search(r"fn\s*=\s*['\"]examples_week9.txt['\"]", src):
+    # 파일명 변수 선언만 있으면 모든 문제 통과
+    # 0번: 파일명 변수 선언 (fn = '*.txt')
+    if re.search(r"fn\s*=\s*['\"][^\"]*\.txt['\"]", src):
         checks.append('✅ 문제 0: 파일명 변수 선언 확인')
-
-    if re.search(r"\bopen\s*\(|with\s+open\s*\(", src):
-        checks.append('✅ 문제 1/2: 파일 열기/쓰기/읽기 사용 감지')
     else:
-        checks.append('❌ 문제 1/2: 파일 입출력 코드가 보이지 않습니다')
+        checks.append('❌ 문제 0: 파일명 변수 선언이 없습니다')
 
-    if re.search(r"\bexcept\b", src):
-        checks.append('✅ 문제 3: 예외 처리 코드 감지')
+    # 1번: 파일 쓰기 (with open(fn, 'w'), f.write)
+    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]w['\"]", src) and re.search(r"\.write\s*\(", src):
+        checks.append('✅ 문제 1: 파일 쓰기 코드 확인')
     else:
-        checks.append('❌ 문제 3: 파일 예외 처리 코드가 보이지 않습니다')
+        checks.append('❌ 문제 1: 파일 쓰기 코드가 없습니다')
 
-    if re.search(r"read\b|readlines\b|len\b", src):
-        checks.append('✅ 문제 4: 파일 읽기/길이 출력 코드 감지')
+    # 2번: 파일 읽기 (with open(fn, 'r'), f.read)
+    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]r['\"]", src) and re.search(r"\.read\s*\(", src):
+        checks.append('✅ 문제 2: 파일 읽기 코드 확인')
     else:
-        checks.append('❌ 문제 4: 파일 읽기/길이 출력 코드가 보이지 않습니다')
+        checks.append('❌ 문제 2: 파일 읽기 코드가 없습니다')
+
+    # 3번: 예외 처리 (with open(, 'r'), except FileNotFoundError)
+    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src) and re.search(r"except\s+FileNotFoundError", src):
+        checks.append('✅ 문제 3: 파일 예외 처리 코드 확인')
+    else:
+        checks.append('❌ 문제 3: 파일 예외 처리 코드가 없습니다')
+
+    # 4번: 파일 읽고 print로 변수 출력 (with open(fn, 'r'), print())
+    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]r['\"]", src) and re.search(r"print\s*\(", src):
+        checks.append('✅ 문제 4: 파일 읽고 변수 출력 코드 확인')
+    else:
+        checks.append('❌ 문제 4: 파일 읽고 변수 출력 코드가 없습니다')
+
+    # 5번: 파일 append (with open(fn, 'a'), f.write)
+    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]a['\"]", src) and re.search(r"\.write\s*\(", src):
+        checks.append('✅ 문제 5: 파일 append 코드 확인')
+    else:
+        checks.append('❌ 문제 5: 파일 append 코드가 없습니다')
+
+    # 6번: 파일 삭제 (os.remove(fn))
+    if re.search(r"os\.remove\s*\(fn\s*\)", src):
+        checks.append('✅ 문제 6: 파일 삭제 코드 확인')
+    else:
+        checks.append('❌ 문제 6: 파일 삭제 코드가 없습니다')
 
     return checks
 

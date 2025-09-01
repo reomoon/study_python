@@ -1,4 +1,4 @@
-import os
+import os # os 모듈은 마지막에 파일 삭제(cleanup)할 때 사용합니다.
 
 # Week 9 example: 파일 입출력
 # 1. 텍스트 파일 생성 및 저장
