@@ -23,32 +23,33 @@ def static_analysis(src):
     else:
         checks.append('❌ 문제 0: 파일명 변수 선언이 없습니다')
 
-    # 1번: 파일 쓰기 (with open(fn, 'w'), f.write)
-    if re.search(r"with\s+open\s*\([^)]*['\"]w['\"]", src, re.I) and re.search(r"\.write\s*\(", src):
+
+    # 1번: 파일 쓰기 (with open(..., 'w'), f.write)
+    if re.search(r"with\s+open\s*\(.*['\"]w['\"].*\)", src, re.I) and re.search(r"\.write\s*\(", src):
         checks.append('✅ 문제 1: 파일 쓰기 코드 확인')
     else:
         checks.append('❌ 문제 1: 파일 쓰기 코드가 없습니다')
 
-    # 2번: 파일 읽기 (with open(fn, 'r'), f.read)
-    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src, re.I) and re.search(r"\.read\s*\(", src):
+    # 2번: 파일 읽기 (with open(..., 'r'), f.read)
+    if re.search(r"with\s+open\s*\(.*['\"]r['\"].*\)", src, re.I) and re.search(r"\.read\s*\(", src):
         checks.append('✅ 문제 2: 파일 읽기 코드 확인')
     else:
         checks.append('❌ 문제 2: 파일 읽기 코드가 없습니다')
 
-    # 3번: 예외 처리 (with open(, 'r'), except FileNotFoundError)
-    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src, re.I) and re.search(r"except\s+FileNotFoundError", src):
+    # 3번: 예외 처리 (with open(..., 'r'), except FileNotFoundError)
+    if re.search(r"with\s+open\s*\(.*['\"]r['\"].*\)", src, re.I) and re.search(r"except\s+FileNotFoundError", src):
         checks.append('✅ 문제 3: 파일 예외 처리 코드 확인')
     else:
         checks.append('❌ 문제 3: 파일 예외 처리 코드가 없습니다')
 
-    # 4번: 파일 읽고 print로 변수 출력 (with open(fn, 'r'), print())
-    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src, re.I) and re.search(r"print\s*\(", src):
+    # 4번: 파일 읽고 print로 변수 출력 (with open(..., 'r'), print())
+    if re.search(r"with\s+open\s*\(.*['\"]r['\"].*\)", src, re.I) and re.search(r"print\s*\(", src):
         checks.append('✅ 문제 4: 파일 읽고 변수 출력 코드 확인')
     else:
         checks.append('❌ 문제 4: 파일 읽고 변수 출력 코드가 없습니다')
 
-    # 5번: 파일 append (with open(fn, 'a'), f.write)
-    if re.search(r"with\s+open\s*\([^)]*['\"]a['\"]", src, re.I) and re.search(r"\.write\s*\(", src):
+    # 5번: 파일 append (with open(..., 'a'), f.write)
+    if re.search(r"with\s+open\s*\(.*['\"]a['\"].*\)", src, re.I) and re.search(r"\.write\s*\(", src):
         checks.append('✅ 문제 5: 파일 append 코드 확인')
     else:
         checks.append('❌ 문제 5: 파일 append 코드가 없습니다')
@@ -74,6 +75,7 @@ def comment_score(lines):
     return score
 
 def check_code(code):
+    result = "==== 제출 코드 ====" + "\n" + code + "\n" + "===================\n"
     checks = static_analysis(code)
     lines = code.splitlines()
     c_score = comment_score(lines)

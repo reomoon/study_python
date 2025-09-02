@@ -120,11 +120,14 @@ def index():
         # 대신 메모리 모듈을 생성해 `week{N}_variable` 이름으로 sys.modules에 주입합니다.
         if week == '9':
             # week9: 파일 입출력 문제는 학생 코드 실행 없이 static code analysis만 수행
+            print("==== 제출 코드(app.py) ====")
+            print(code)
+            print("===========================")
             try:
                 import answers.week9 as week9_checker
-                checker_output = week9_checker.check_code(code)
+                checker_output = ''  # week9은 checker_output을 비워서 중복 출력 방지
                 student_output = '(실행하지 않음)'
-                result = f"<b>자동 채점 결과:</b><br>✅ 정상 분석!"
+                result = week9_checker.check_code(code)
             except Exception as e:
                 import traceback
                 tb = traceback.format_exc()
