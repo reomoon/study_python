@@ -1,39 +1,54 @@
+"""
+이 파일의 채점 기준은 정규표현식(정규식, Regular Expression)을 사용하여
+학생 코드(src)에서 각 항목별로 필요한 코드 패턴이 실제로 들어가 있는지 검사합니다.
+
+예시:
+    - 파일명 변수 선언:   r"fn\s*=\s*['\"][^\"]*\.txt['\"]"
+    - 파일 쓰기:         r"with\s+open\s*\(fn\s*,\s*['\"]w['\"]"
+    - 파일 읽기:         r"with\s+open\s*\(fn\s*,\s*['\"]r['\"]"
+    - 예외 처리:         r"except\s+FileNotFoundError"
+    - 파일 삭제:         r"os\.remove\s*\(fn\s*\)"
+
+정규식은 파이썬 re 모듈로 사용하며, re.search(패턴, 코드)로 검사합니다.
+각 항목별로 코드가 실제로 들어가 있으면 ✅, 없으면 ❌로 채점됩니다.
+"""
 def static_analysis(src):
     import re
     checks = []
     # 파일명 변수 선언만 있으면 모든 문제 통과
+
     # 0번: 파일명 변수 선언 (fn = '*.txt')
-    if re.search(r"fn\s*=\s*['\"][^\"]*\.txt['\"]", src):
+    if re.search(r"fn\s*=\s*['\"]\w+\.txt['\"]", src):
         checks.append('✅ 문제 0: 파일명 변수 선언 확인')
     else:
         checks.append('❌ 문제 0: 파일명 변수 선언이 없습니다')
 
     # 1번: 파일 쓰기 (with open(fn, 'w'), f.write)
-    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]w['\"]", src) and re.search(r"\.write\s*\(", src):
+    if re.search(r"with\s+open\s*\([^)]*['\"]w['\"]", src, re.I) and re.search(r"\.write\s*\(", src):
         checks.append('✅ 문제 1: 파일 쓰기 코드 확인')
     else:
         checks.append('❌ 문제 1: 파일 쓰기 코드가 없습니다')
 
     # 2번: 파일 읽기 (with open(fn, 'r'), f.read)
-    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]r['\"]", src) and re.search(r"\.read\s*\(", src):
+    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src, re.I) and re.search(r"\.read\s*\(", src):
         checks.append('✅ 문제 2: 파일 읽기 코드 확인')
     else:
         checks.append('❌ 문제 2: 파일 읽기 코드가 없습니다')
 
     # 3번: 예외 처리 (with open(, 'r'), except FileNotFoundError)
-    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src) and re.search(r"except\s+FileNotFoundError", src):
+    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src, re.I) and re.search(r"except\s+FileNotFoundError", src):
         checks.append('✅ 문제 3: 파일 예외 처리 코드 확인')
     else:
         checks.append('❌ 문제 3: 파일 예외 처리 코드가 없습니다')
 
     # 4번: 파일 읽고 print로 변수 출력 (with open(fn, 'r'), print())
-    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]r['\"]", src) and re.search(r"print\s*\(", src):
+    if re.search(r"with\s+open\s*\([^)]*['\"]r['\"]", src, re.I) and re.search(r"print\s*\(", src):
         checks.append('✅ 문제 4: 파일 읽고 변수 출력 코드 확인')
     else:
         checks.append('❌ 문제 4: 파일 읽고 변수 출력 코드가 없습니다')
 
     # 5번: 파일 append (with open(fn, 'a'), f.write)
-    if re.search(r"with\s+open\s*\(fn\s*,\s*['\"]a['\"]", src) and re.search(r"\.write\s*\(", src):
+    if re.search(r"with\s+open\s*\([^)]*['\"]a['\"]", src, re.I) and re.search(r"\.write\s*\(", src):
         checks.append('✅ 문제 5: 파일 append 코드 확인')
     else:
         checks.append('❌ 문제 5: 파일 append 코드가 없습니다')

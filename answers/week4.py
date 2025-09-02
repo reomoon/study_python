@@ -1,3 +1,9 @@
+"""
+정규식에서 사용되는 주요 패턴 설명:
+    - \s+ : 하나 이상의 공백 문자 (space, tab 등)
+    - \w+ : 하나 이상의 영문자, 숫자, 밑줄(변수명에 해당)
+예시: r"if\s+\w+\s*>\s*10"은 'if' 다음에 변수명, 그 뒤에 '>'와 10이 있는 조건문을 찾음
+"""
 import io, contextlib, importlib.util, re
 
 def grade_week4(module_path):
@@ -96,11 +102,11 @@ def run(week_module):
     else:
         checks.append('❌ 문제 3: 예외 처리 코드 또는 출력이 보이지 않습니다')
 
-    # 4) 10 비교: '10보다 큽니다', '10보다 작습니다', '10 입니다' 중 하나라도 출력되는지
-    if re.search(r"if\\s+sum\\s*>\\s*10", src) or re.search(r"elif\\s+sum\\s*<\\s*10", src):
-        checks.append('✅ 문제 4: 10 비교 출력 확인')
+    # 4) 10 비교: if num > 10, elif num < 10 조건문이 있는지 검사
+    if re.search(r"if\s+\w+\s*>\s*10", src) or re.search(r"elif\s+\w+\s*<\s*10", src):
+        checks.append('✅ 문제 4: 10 비교 조건문 확인')
     else:
-        checks.append('❌ 문제 4: 10 비교 출력 없음')
+        checks.append('❌ 문제 4: 10 비교 조건문 없음')
 
     # 5) 에러/Exception/오류/예외 등 다양한 단어 허용
     if re.search(r"에러|Exception|오류|예외", output, re.IGNORECASE):
