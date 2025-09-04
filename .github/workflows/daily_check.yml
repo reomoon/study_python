@@ -6,11 +6,6 @@ on:
   # pull_request:
   #   branches: ['main']
   workflow_dispatch:  # 수동 실행 가능
-  push:
-    branches: ['study/**']  # study/ 로 시작하는 모든 브랜치
-  pull_request:
-    branches: ['main']
-  workflow_dispatch:  # 수동 실행 가능
 
 jobs:
   python-teacher:
