@@ -128,6 +128,20 @@ def index():
                 checker_output = ''  # week9은 checker_output을 비워서 중복 출력 방지
                 student_output = '(실행하지 않음)'
                 result = week9_checker.check_code(code)
+                print("==== 채점 결과 ====")
+                print(result)
+                result = f"<pre>{result}</pre>"  # 형식 유지를 위해 pre 태그 사용
+                return render_template(  # 
+                    TEMPLATE_NAME,
+                    problem=PROBLEM_TXT,
+                    result=result,
+                    selected_week=selected_week,
+                    week_options=WEEK_OPTIONS,
+                    student_output=student_output,
+                    checker_output=checker_output,
+                    submitted_code=submitted_code
+                )
+
             except Exception as e:
                 import traceback
                 tb = traceback.format_exc()
