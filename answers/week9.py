@@ -12,12 +12,12 @@
 정규식은 파이썬 re 모듈로 사용하며, re.search(패턴, 코드)로 검사합니다.
 각 항목별로 코드가 실제로 들어가 있으면 ✅, 없으면 ❌로 채점됩니다.
 """
+
 def static_analysis(src):
     import re
     checks = []
-    # 파일명 변수 선언만 있으면 모든 문제 통과
 
-    # 0번: 파일명 변수 선언 (fn = '*.txt')
+     # 0번: 파일명 변수 선언 (fn = '*.txt')
     if re.search(r"fn\s*=\s*['\"]\w+\.txt['\"]", src):
         checks.append('✅ 문제 0: 파일명 변수 선언 확인')
     else:
@@ -31,19 +31,35 @@ def static_analysis(src):
         checks.append('❌ 문제 1: 파일 쓰기 코드가 없습니다')
 
     # 2번: 파일 읽기 (with open(..., 'r'), f.read)
-    if re.search(r"with\s+open\s*\(.*['\"]r['\"].*\)", src, re.I) and re.search(r"\.read\s*\(", src):
+    pattern_with_open = r"with\s+open\s*\(\s*fn\s*,\s*['\"]r['\"].*?\)\s*as\s+f\s*:"
+    pattern_f_read = r"content\s*=\s*f\.read\s*\("
+    pattern_print_content = r"print\s*\(\s*content\s*\)"
+
+    if (re.search(pattern_with_open, src, re.I | re.S) and
+        re.search(pattern_f_read, src, re.I | re.S) and
+        re.search(pattern_print_content, src, re.I | re.S)):
         checks.append('✅ 문제 2: 파일 읽기 코드 확인')
     else:
         checks.append('❌ 문제 2: 파일 읽기 코드가 없습니다')
 
     # 3번: 예외 처리 (with open(..., 'r'), except FileNotFoundError)
-    if re.search(r"with\s+open\s*\(.*['\"]r['\"].*\)", src, re.I) and re.search(r"except\s+FileNotFoundError", src):
+    pattern3 = r"except\s+FileNotFoundError"
+    if re.search(pattern3, src):
         checks.append('✅ 문제 3: 파일 예외 처리 코드 확인')
     else:
         checks.append('❌ 문제 3: 파일 예외 처리 코드가 없습니다')
 
     # 4번: 파일 읽고 print로 변수 출력 (with open(..., 'r'), print())
-    if re.search(r"with\s+open\s*\(.*['\"]r['\"].*\)", src, re.I) and re.search(r"print\s*\(", src):
+    pattern_with_open = r"with\s+open\s*\(\s*fn\s*,\s*['\"]r['\"].*?\)"
+    pattern_readlines = r"lines\s*=\s*f\.readlines\s*\("
+    pattern_print_lines = r"print\s*\(\s*lines\s*\)"
+    pattern_print_len = r"print\s*\(\s*len\s*\(\s*lines\s*\)\s*\)"
+
+    # re.DOTALL을 써서 여러 줄에 걸쳐 있어도 검색 가능하게
+    if (re.search(pattern_with_open, src, re.I | re.DOTALL) and
+        re.search(pattern_readlines, src, re.I | re.DOTALL) and
+        re.search(pattern_print_lines, src, re.I | re.DOTALL) and
+        re.search(pattern_print_len, src, re.I | re.DOTALL)):
         checks.append('✅ 문제 4: 파일 읽고 변수 출력 코드 확인')
     else:
         checks.append('❌ 문제 4: 파일 읽고 변수 출력 코드가 없습니다')
