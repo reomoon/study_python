@@ -119,28 +119,16 @@ def index():
         # 제출 코드를 파일로 저장 (Vercel은 읽기 전용 파일 시스템이므로 파일 쓰기 금지)
         # 대신 메모리 모듈을 생성해 `week{N}_variable` 이름으로 sys.modules에 주입합니다.
         if week == '9':
-            # week9: 파일 입출력 문제는 학생 코드 실행 없이 static code analysis만 수행
             print("==== 제출 코드(app.py) ====")
             print(code)
             print("===========================")
             try:
                 import answers.week9 as week9_checker
-                checker_output = ''  # week9은 checker_output을 비워서 중복 출력 방지
+                checker_output = '' 
                 student_output = '(실행하지 않음)'
                 result = week9_checker.check_code(code)
                 print("==== 채점 결과 ====")
                 print(result)
-                result = f"<pre>{result}</pre>"  # 형식 유지를 위해 pre 태그 사용
-                return render_template(  # 
-                    TEMPLATE_NAME,
-                    problem=PROBLEM_TXT,
-                    result=result,
-                    selected_week=selected_week,
-                    week_options=WEEK_OPTIONS,
-                    student_output=student_output,
-                    checker_output=checker_output,
-                    submitted_code=submitted_code
-                )
 
             except Exception as e:
                 import traceback
@@ -179,61 +167,104 @@ def index():
         # 이전에는 subprocess로 외부 프로세스를 실행했음.
         # Vercel 같은 서버리스 환경에서는 subprocess 사용이 제한되거나 실패할 수 있으므로,
         # test_checker 모듈을 직접 import하고 stdout을 캡처하여 실행하도록 변경합니다.
-        try:
-            import importlib
-            import importlib.util
-            import contextlib
-            from io import StringIO
+        if week == '9':
+            student_output = '(실행하지 않음)'
+            try:
+                import answers.week9 as week9_checker
+                checker_output = week9_checker.check_code(code)
 
-            buf = StringIO()
-            # test_checker를 임포트(또는 reload)하고 run_week(week)을 호출하여
-            # stdout으로 출력되는 채점 메시지를 캡처합니다.
-            with contextlib.redirect_stdout(buf):
-                # 이미 임포트되어 있을 수 있으므로 reload로 최신 상태 반영
-                if 'test_checker' in sys.modules:
-                    importlib.reload(sys.modules['test_checker']).run_week(week)
-                else:
-                    import test_checker
-                    importlib.reload(test_checker)
-                    test_checker.run_week(week)
-            checker_output = buf.getvalue()
-            result = f"<b>자동 채점 결과:</b><br>✅ 정상 실행!"
-        except Exception as e:
-            import traceback
-            tb = traceback.format_exc()
-            output = f"{e}\n\n{tb}"
-            result = f"❌ 자동 채점 중 에러 발생:<br><pre>{output}</pre>"
+            except Exception as e:
+                import traceback
+                tb = traceback.format_exc()
+                checker_output = ''
+                result = f"❌ 코드 분석 중 에러 발생:<br><pre>{e}\n\n{tb}</pre>"
 
-        # GitHub 이슈 생성
-        # GitHub 이슈 생성: 토큰이 있으면 채점 결과와 원본 코드를 리포에 등록
-        if GITHUB_TOKEN:
-            issue_title = f"[{week}주차] {username} 답안 제출"
-            issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**학생 코드 출력:**\n```
-{student_output}
-```\n\n**자동 채점 결과:**\n```
-{checker_output}
-```"""
-            headers = {
-                "Authorization": f"token {GITHUB_TOKEN}",
-                "Accept": "application/vnd.github.v3+json"
-            }
-            data = {"title": issue_title, "body": issue_body}
-            r = requests.post(f"https://api.github.com/repos/reomoon/study_python/issues", json=data, headers=headers)
-            if r.status_code == 201:
-                # API가 반환한 생성된 이슈의 HTML URL을 가져와서 사용자에게 링크로 제공
-                try:
+            # 화면용 result > 단순 자동 채점 결과 안내
+            result = "<b>자동 채점 결과:</b><br>✅ 정상 실행!"
+            # GitHub 이슈 생성
+            if GITHUB_TOKEN:
+                issue_title = f"[{week}주차] {username} 답안 제출"
+                issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**학생 코드 출력:**\n```
+        {student_output}
+        ```\n\n**자동 채점 결과:**\n```
+        {checker_output}
+        ```"""
+                headers = {
+                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Accept": "application/vnd.github.v3+json"
+                }
+                data = {"title": issue_title, "body": issue_body}
+                r = requests.post(f"https://api.github.com/repos/{GITHUB_REPO}/issues", json=data, headers=headers)
+                if r.status_code == 201:
                     issue_url = r.json().get('html_url')
-                except Exception:
-                    issue_url = None
-                    if issue_url:
-                    # Make the issue link text smaller so it doesn't dominate the result area
-                        result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <span style=\"font-size:0.9em;\"><a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a></span>"
+                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: <span style=\"font-size:0.9em;\"><a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a></span>"
                 else:
-                    result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: <span style=\"font-size:0.9em;\">https://github.com/{GITHUB_REPO}/issues</span>"
+                    result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
             else:
-                result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
+                result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
+
         else:
-            result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
+            # 일반 주차 채점
+            try:
+                import types
+                import contextlib
+                from io import StringIO
+
+                module_name = f'week{week}_variable'
+                module = types.ModuleType(module_name)
+                buf_exec = io.StringIO()
+                stdin_text = request.form.get('stdin', '')
+
+                with contextlib.redirect_stdout(buf_exec), RedirectInput(stdin_text):
+                    exec(code, module.__dict__)
+
+                student_output = buf_exec.getvalue()
+                module.__source__ = code
+                sys.modules[module_name] = module
+
+                # test_checker 실행
+                buf_checker = StringIO()
+                import importlib
+                import test_checker
+                importlib.reload(test_checker)
+                with contextlib.redirect_stdout(buf_checker):
+                    test_checker.run_week(week)
+                checker_output = buf_checker.getvalue()
+                result = f"<b>자동 채점 결과:</b><br>✅ 정상 실행!"
+
+            except Exception as e:
+                import traceback
+                tb = traceback.format_exc()
+                result = f"❌ 제출 코드 실행 중 에러:<br><pre>{e}\n\n{tb}</pre>"
+
+            if GITHUB_TOKEN:
+                issue_title = f"[{week}주차] {username} 답안 제출"
+                issue_body = f"""**이름:** {username}\n\n**주차:** {week}주차\n\n**답안 코드:**\n```python\n{code}\n```\n\n**학생 코드 출력:**\n```
+    {student_output}
+    ```\n\n**자동 채점 결과:**\n```
+    {checker_output}
+    ```"""
+                headers = {
+                    "Authorization": f"token {GITHUB_TOKEN}",
+                    "Accept": "application/vnd.github.v3+json"
+                }
+                data = {"title": issue_title, "body": issue_body}
+                r = requests.post(f"https://api.github.com/repos/reomoon/study_python/issues", json=data, headers=headers)
+                if r.status_code == 201:
+                    # API가 반환한 생성된 이슈의 HTML URL을 가져와서 사용자에게 링크로 제공
+                    try:
+                        issue_url = r.json().get('html_url')
+                    except Exception:
+                        issue_url = None
+                        if issue_url:
+                        # Make the issue link text smaller so it doesn't dominate the result area
+                            result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 확인: <span style=\"font-size:0.9em;\"><a href=\"{issue_url}\" target=\"_blank\">{issue_url}</a></span>"
+                    else:
+                        result += f"<br>✅ GitHub 이슈가 성공적으로 생성되었습니다!<br>🔗 이슈 목록: <span style=\"font-size:0.9em;\">https://github.com/{GITHUB_REPO}/issues</span>"
+                else:
+                    result += f"<br>❌ GitHub 이슈 생성 실패: {r.text}"
+            else:
+                result += "<br>⚠️ GitHub 토큰이 설정되어 있지 않습니다."
 
     # 렌더링 결과 반환
     # GET이든 POST이든 selected_week에 따라 문제 로드
@@ -243,7 +274,6 @@ def index():
             PROBLEM_TXT = pf.read()
     except Exception as e:
         PROBLEM_TXT = f"문제 파일을 불러올 수 없습니다: {e}"
-
     return render_template(TEMPLATE_NAME, problem=PROBLEM_TXT, result=result, selected_week=selected_week, week_options=WEEK_OPTIONS, student_output=student_output, checker_output=checker_output, submitted_code=submitted_code)
 # 로컬에서는 5555, Vercel에서는 자동 포트로 동작
 # 로컬 푸시할때는 vercel 환경에서 실행 안되니 주석처리
