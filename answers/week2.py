@@ -95,14 +95,45 @@ def run(week_module):
         checks.append('❌ 문제 3 출력: 이름 출력이 형식에 맞지 않습니다')
 
     # 4) numbers list and length/sum printed
+    # if module is not None and hasattr(module, 'numbers') and isinstance(getattr(module,'numbers'), (list,tuple)):
+    #     checks.append('✅ 문제 4: numbers 리스트 정의 완료')
+    # else:
+    #     checks.append('❌ 문제 4: numbers 리스트를 정의해주세요')
+    # if re.search(r"len\s*\(|sum\s*\(", output):
+    #     checks.append('✅ 문제 4 출력: 리스트 길이나 합이 출력된 것으로 보입니다')
+    # else:
+    #     checks.append('❌ 문제 4 출력: 리스트 관련 출력이 보이지 않습니다')
+
+    list_defined  = False
+    len_sum_used = False
+    correct_output_found  = False
+
+    # 4-1 numbers 리스트 정의 검증
     if module is not None and hasattr(module, 'numbers') and isinstance(getattr(module,'numbers'), (list,tuple)):
-        checks.append('✅ 문제 4: numbers 리스트 정의 완료')
+        list_defined  =True
+        checks.append('✅ 문제 4-1: numbers 리스트 정의 완료')
+
+        user_list = getattr(module, 'numbers')
+        expected_len = len(user_list)
+        expected_sum = sum(user_list)
+
+        if str(expected_len) in output or str(expected_sum) in output:
+            correct_output_found = True
     else:
-        checks.append('❌ 문제 4: numbers 리스트를 정의해주세요')
-    if re.search(r"len\s*\(|sum\s*\(|\d+", output):
-        checks.append('✅ 문제 4 출력: 리스트 길이나 합이 출력된 것으로 보입니다')
+        checks.append('❌ 문제 4-1: numbers 리스트를 정의해주세요')
+
+    # 4-2 len() 또는 sum() 함수가 사용되고 출력되는지 검증
+    if module is not None and getattr(module, '__source__', None):
+        source_code = getattr(module, '__source__', '')
+        if 'len(' in source_code or 'sum(' in source_code:
+            len_sum_used = True
+
+    if list_defined and len_sum_used and correct_output_found:
+        checks.append('✅ 문제 4-2: 리스트 길이나 합이 출력된 것으로 보입니다')
+    elif list_defined and len_sum_used:
+        checks.append('⚠️ 문제 4-2: 리스트 길이나 합을 구하는 코드는 있으나 출력이 확인되지 않습니다 (부분 점수)')
     else:
-        checks.append('❌ 문제 4 출력: 리스트 관련 출력이 보이지 않습니다')
+        checks.append('❌ 문제 4-2: len() 또는 sum() 함수를 사용하지 않았습니다.')
 
     # 5) info dict with age and city
     if module is not None and hasattr(module, 'info') and isinstance(getattr(module,'info'), dict):
