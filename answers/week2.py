@@ -45,15 +45,15 @@ def run(week_module):
 
     # 1) num = 42 and type printed
     if module is not None and hasattr(module, 'num') and getattr(module, 'num') == 42:
-        checks.append('✅ 문제 1: num 변수에 42가 할당됨')
+        checks.append('✅ 문제 1-1: num 변수에 42가 할당됨')
     else:
-        checks.append('❌ 문제 1: num이 42인지 확인해주세요')
+        checks.append('❌ 문제 1-1: num이 42인지 확인해주세요')
     import re
     # <class 'int'> 같은 출력에서 \b가 동작하지 않을 수 있어 단순 포함 검사로 변경
     if 'int' in output:
-        checks.append('✅ 문제 1 출력: 타입 출력 확인')
+        checks.append('✅ 문제 1-1 출력: 타입 출력 확인')
     else:
-        checks.append('❌ 문제 1 출력: 타입 출력이 보이지 않습니다')
+        checks.append('❌ 문제 1-1 출력: 타입 출력이 보이지 않습니다')
 
     # 2) a=15, b=4, 덧셈 결과 19 출력 (유연하게 평가)
     found_15 = False
@@ -69,40 +69,30 @@ def run(week_module):
                     if val == 4:
                         found_4 = True
     if found_15 and found_4:
-        checks.append('✅ 문제 2: 15와 4 값이 있는 변수 확인')
+        checks.append('✅ 문제 2-1: 15와 4 값이 있는 변수 확인')
     elif found_15 or found_4:
-        checks.append('⚠️ 문제 2: 15 또는 4 값만 있음 (부분 점수)')
+        checks.append('⚠️ 문제 2-1: 15 또는 4 값만 있음 (부분 점수)')
     else:
-        checks.append('❌ 문제 2: 15, 4 값이 있는 변수를 찾을 수 없음')
+        checks.append('❌ 문제 2-1: 15, 4 값이 있는 변수를 찾을 수 없음')
     # 덧셈 결과 19가 출력에 있으면 인정
     if re.search(r"(?<!\d)19(?!\d)", output):
-        checks.append('✅ 문제 2 출력: 덧셈 결과 출력 확인')
+        checks.append('✅ 문제 2-2 출력: 덧셈 결과 출력 확인')
     else:
         # 혹시 15+4가 아닌 다른 방식으로 19가 출력됐을 수도 있으니, 19가 출력에 있으면 부분 점수
         if '19' in output:
-            checks.append('⚠️ 문제 2 출력: 19가 출력에 있으나 덧셈 결과인지 불명확 (부분 점수)')
+            checks.append('⚠️ 문제 2-2 출력: 19가 출력에 있으나 덧셈 결과인지 불명확 (부분 점수)')
         else:
-            checks.append('❌ 문제 2 출력: 덧셈 결과가 보이지 않습니다')
+            checks.append('❌ 문제 2-2 출력: 덧셈 결과가 보이지 않습니다')
 
     # 3) name 변수와 출력 형식
     if module is not None and hasattr(module, 'name') and isinstance(getattr(module,'name'), str):
-        checks.append('✅ 문제 3: name 변수 정의 완료')
+        checks.append('✅ 문제 3-1: name 변수 정의 완료')
     else:
-        checks.append('❌ 문제 3: name 변수가 정의되지 않았습니다')
+        checks.append('❌ 문제 3-1: name 변수가 정의되지 않았습니다')
     if '내 이름은' in output:
-        checks.append('✅ 문제 3 출력: 이름 출력 형식 확인')
+        checks.append('✅ 문제 3-2 출력: 이름 출력 형식 확인')
     else:
-        checks.append('❌ 문제 3 출력: 이름 출력이 형식에 맞지 않습니다')
-
-    # 4) numbers list and length/sum printed
-    # if module is not None and hasattr(module, 'numbers') and isinstance(getattr(module,'numbers'), (list,tuple)):
-    #     checks.append('✅ 문제 4: numbers 리스트 정의 완료')
-    # else:
-    #     checks.append('❌ 문제 4: numbers 리스트를 정의해주세요')
-    # if re.search(r"len\s*\(|sum\s*\(", output):
-    #     checks.append('✅ 문제 4 출력: 리스트 길이나 합이 출력된 것으로 보입니다')
-    # else:
-    #     checks.append('❌ 문제 4 출력: 리스트 관련 출력이 보이지 않습니다')
+        checks.append('❌ 문제 3-2 출력: 이름 출력이 형식에 맞지 않습니다')
 
     list_defined  = False
     len_sum_used = False
@@ -139,11 +129,11 @@ def run(week_module):
     if module is not None and hasattr(module, 'info') and isinstance(getattr(module,'info'), dict):
         info = getattr(module,'info')
         if 'age' in info:
-            checks.append('✅ 문제 5: info 딕셔너리에 age 포함')
+            checks.append('✅ 문제 5-1: info 딕셔너리에 age 포함')
         else:
-            checks.append('❌ 문제 5: age 키가 info에 없습니다')
+            checks.append('❌ 문제 5-1: age 키가 info에 없습니다')
     else:
-        checks.append('❌ 문제 5: info 딕셔너리를 정의해주세요')
+        checks.append('❌ 문제 5-1: info 딕셔너리를 정의해주세요')
     # 출력 검사: 'age' 또는 'city' 단어 또는 info에 담긴 값(예: 25)이 출력에 보이면 통과
     printed_ok = False
     try:
@@ -159,9 +149,9 @@ def run(week_module):
     except Exception:
         printed_ok = False
     if printed_ok:
-        checks.append('✅ 문제 5 출력: 나이 또는 도시 출력 확인')
+        checks.append('✅ 문제 5-2 출력: 나이 또는 도시 출력 확인')
     else:
-        checks.append('❌ 문제 5 출력: info 관련 출력이 보이지 않습니다')
+        checks.append('❌ 문제 5-2 출력: info 관련 출력이 보이지 않습니다')
 
     for c in checks:
         print(c)
