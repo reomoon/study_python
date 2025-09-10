@@ -1,8 +1,9 @@
-# Week 5 example: 반복문
+# 1. 반복문
 for i in range(1,6):
     print(i)
 
-numbers = [1,2,3,4]
+# 2. 리스트와 반복문 합계
+numbers = [1,2,3,4,5]
 print(sum(numbers))
 
 # 3. while문 카운트다운
