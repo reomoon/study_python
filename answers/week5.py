@@ -4,20 +4,39 @@ def grade_week5_v2(module_path):
     spec = importlib.util.spec_from_file_location('week5', module_path)
     mod = importlib.util.module_from_spec(spec)
     f = io.StringIO()
+
+    try:
+        source_code = open(module_path, encoding='utf-8').read()
+    except Exception:
+        source_code = ""
+
+
     with contextlib.redirect_stdout(f):
         spec.loader.exec_module(mod)
     output = f.getvalue()
     checks = []
+
+    
     # 1. 1~5까지 출력
-    if re.search(r"\b1\b.*\b2\b.*\b3\b.*\b4\b.*\b5\b", output, flags=re.DOTALL):
+    if re.fullmatch(r"\s*1\s*2\s*3\s*4\s*5\s*", output, flags=re.DOTALL):
         checks.append('✅ 문제 1: 1~5까지 출력 확인')
     else:
         checks.append('❌ 문제 1: 1~5까지 출력 없음')
+
+
     # 2. 리스트 합
-    if re.search(r"\b15\b", output) or re.search(r"sum", output) or re.search(r"합", output):
+    list_sum_ok = False
+    if "sum(" in source_code:
+        if re.search(r"\b15\b", output):
+            list_sum_ok = True
+    
+    if list_sum_ok:
         checks.append('✅ 문제 2: 리스트 합 출력 확인')
     else:
         checks.append('❌ 문제 2: 리스트 합 출력 없음')
+
+
+
     # 3. while 카운트다운
     if re.search(r"3\s*2\s*1\s*0", output):
         checks.append('✅ 문제 3: while 카운트다운 출력 확인')
@@ -69,6 +88,7 @@ def run(week_module):
             except Exception as e:
                 print(f"❌ 코드 실행 오류: {e}")
         output = f.getvalue()
+
     else:
         try:
             spec = importlib.util.spec_from_file_location('week5', 'week5_loop.py')
@@ -93,14 +113,27 @@ def run(week_module):
                 module = None
 
     import re
+    source_code = getattr(week_module, '__source__', '')
     checks = []
     # 1. 1~5까지 출력
-    if re.search(r"\b1\b.*\b2\b.*\b3\b.*\b4\b.*\b5\b", output, flags=re.DOTALL):
+    if re.search(r"1\s*2\s*3\s*4\s*5", output):
         checks.append('✅ 문제 1: 1~5까지 출력 확인')
     else:
         checks.append('❌ 문제 1: 1~5까지 출력 없음')
+
     # 2. 리스트 합
-    if re.search(r"\b15\b", output) or re.search(r"sum", output) or re.search(r"합", output):
+    list_sum_ok = False
+    if "sum(" in source_code:
+        # 'numbers' 변수가 존재하고 리스트라면
+        if hasattr(week_module, 'numbers') and isinstance(getattr(week_module, 'numbers'), (list, tuple)):
+            user_list = getattr(week_module, 'numbers')
+            expected_sum = sum(user_list)
+            
+            # 출력에 예상 합이 포함되어 있는지 확인
+            if re.search(r"\b" + str(expected_sum) + r"\b", output):
+                list_sum_ok = True
+    
+    if list_sum_ok:
         checks.append('✅ 문제 2: 리스트 합 출력 확인')
     else:
         checks.append('❌ 문제 2: 리스트 합 출력 없음')
