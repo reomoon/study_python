@@ -8,8 +8,8 @@ a = int(input('숫자1: '))
 b = int(input('숫자2: '))
 print(a + b)
 
-print('line1')
-print('line2')
+print('FASHIONGO')
+print('FASHIONGO')
 
 s = int(input('정수: '))
 print(s * 2)
