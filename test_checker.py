@@ -139,7 +139,7 @@ def load_answer_modules():
 # 캐시된 answer 모듈 맵
 _answer_modules = load_answer_modules()
 
-def run_week(week):
+def run_week(week, student_output, stdin_text):
     """주차별 채점 실행기: answers 폴더의 모듈에게 위임합니다."""
     try:
         w = int(week)
@@ -167,7 +167,10 @@ def run_week(week):
     result = {'score': 0, 'error': None}
     def run_with_timeout():
         try:
-            result['score'] = mod.run(week_module)
+            if w == 3 or w == 4:
+                result['score'] = mod.run(week_module, student_output.splitlines(), stdin_text.splitlines())
+            else:
+                result['score'] = mod.run(week_module)
         except Exception as e:
             result['error'] = str(e)
 
