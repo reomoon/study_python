@@ -209,26 +209,35 @@ def index():
                 import types
                 import contextlib
                 from io import StringIO
-
+                # 채점 환경 준비
                 module_name = f'week{week}_variable'
+                # 빈 모듈 생성
                 module = types.ModuleType(module_name)
+                # 제출 코드 버퍼에 입력
                 buf_exec = io.StringIO()
+                # 입력 값을 표준 standard input으로 stdin_text에 저장
                 stdin_text = request.form.get('stdin', '')
+                
 
+                # with 함수안에서 제출 코드 exec(code, module.__dict__) 로 실행
+                # 실행한 값을 buf_exec에 저장
                 with contextlib.redirect_stdout(buf_exec), RedirectInput(stdin_text):
                     exec(code, module.__dict__)
-
+                
+                # 실행 결과를 student_output에 저장
                 student_output = buf_exec.getvalue()
+                # 제출 코드도 module.__source__에 저장
                 module.__source__ = code
                 sys.modules[module_name] = module
 
-                # test_checker 실행
+                # test_checker 
                 buf_checker = StringIO()
                 import importlib
                 import test_checker
                 importlib.reload(test_checker)
                 with contextlib.redirect_stdout(buf_checker):
-                    test_checker.run_week(week)
+                    # 채점기 실행
+                    test_checker.run_week(week, student_output, stdin_text)
                 checker_output = buf_checker.getvalue()
                 result = f"<b>자동 채점 결과:</b><br>✅ 정상 실행!"
 
