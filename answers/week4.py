@@ -142,7 +142,7 @@ def run(week_module, student_output, stdin_text):
         checks.append('❌ 문제 2: 영/음수/양수 출력 누락')
 
     # 3) 예외 처리 출력 확인
-    if re.search(r"입력 오류|ValueError|예외|오류|에러", output, re.IGNORECASE):
+    if re.search(r"입력 오류", output):
         checks.append('✅ 문제 3: 예외 처리 출력 확인')
     else:
         checks.append('❌ 문제 3: 예외 처리 코드 또는 출력이 보이지 않습니다')
@@ -159,7 +159,7 @@ def run(week_module, student_output, stdin_text):
             checks.append('❌ 문제 4: 10 비교 조건문 없음')
 
     # 5) 에러/예외 관련 출력 확인
-    if re.search(r"에러|Exception|오류|예외", output, re.IGNORECASE):
+    if re.search(r"에러 잡음", output):
         checks.append('✅ 문제 5: 에러 발생/처리 출력 확인')
     else:
         checks.append('❌ 문제 5: 에러 처리 출력이 보이지 않습니다')
