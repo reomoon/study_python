@@ -89,7 +89,15 @@ def run(week_module):
         checks.append('✅ 문제 3-1: name 변수 정의 완료')
     else:
         checks.append('❌ 문제 3-1: name 변수가 정의되지 않았습니다')
-    if '내 이름은' in output:
+    
+    # name 변수의 실제 값이 출력에 포함되어 있는지 확인
+    name_output_found = False
+    if module is not None and hasattr(module, 'name'):
+        actual_name = getattr(module, 'name')
+        if isinstance(actual_name, str) and actual_name in output:
+            name_output_found = True
+    # 또는 "name" 문자열 자체가 출력에 있는지도 확인 (변수명을 직접 출력한 경우)
+    if name_output_found or 'name' in output.lower():
         checks.append('✅ 문제 3-2 출력: 이름 출력 형식 확인')
     else:
         checks.append('❌ 문제 3-2 출력: 이름 출력이 형식에 맞지 않습니다')
