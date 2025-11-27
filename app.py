@@ -56,7 +56,7 @@ class RedirectInput:
 #   로컬 채점기(test_checker.run_week)를 호출해 채점 결과를 보여주고
 #   (옵션) GitHub 이슈를 생성합니다.
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")  # GitHub API 호출에 사용할 토큰 (환경변수 권장)
+GITHUB_TOKEN = os.environ.get("STUDY_PYTHON_TOKEN")  # GitHub API 호출에 사용할 토큰 (환경변수 권장)
 GITHUB_REPO = "reomoon/study_python"  # 이 리포지토리에 이슈를 생성합니다.
 
 app = Flask(__name__)
